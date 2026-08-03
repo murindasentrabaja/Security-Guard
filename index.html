@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>MSB SECURITY GUARD — Security Gate System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -142,7 +142,6 @@ img{display:block;max-width:100%}
 .stat:hover .spark{transform:rotate(0deg) scale(1.1);opacity:.08}
 
 .grid-2{display:grid;grid-template-columns:1.5fr 1fr;gap:20px}
-@media(max-width:1050px){.grid-2{grid-template-columns:1fr}}
 .panel{border-radius:var(--r-md);padding:22px;animation:fadeUp .5s both}
 .panel h3{font-size:16px;display:flex;align-items:center;gap:10px;margin-bottom:4px}
 .panel .psub{font-size:12.5px;color:var(--ink-soft);margin-bottom:16px}
@@ -157,15 +156,15 @@ img{display:block;max-width:100%}
 .feed-item time{margin-left:auto;font-size:11.5px;color:var(--primary);font-weight:600;white-space:nowrap}
 
 /* toolbar + table */
-.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap; justify-content:space-between;}
 .search{position:relative;flex:1;min-width:200px;max-width:360px}
 .search i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--primary)}
 .search input{width:100%;padding:12px 14px 12px 42px;border-radius:14px;border:1.5px solid var(--line);background:rgba(255,255,255,.8);font-size:14px;transition:all .3s}
 .search input:focus{outline:none;border-color:var(--primary-2);box-shadow:0 0 0 4px rgba(19,183,166,.14);background:#fff}
 .table-card{border-radius:var(--r-md);overflow:hidden;animation:fadeUp .5s both}
-.tbl-scroll{overflow:auto;max-height:64vh}
+.tbl-scroll{overflow-x:auto;max-height:64vh; -webkit-overflow-scrolling:touch;}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
-thead th{position:sticky;top:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);text-align:left;padding:16px;font-family:'Sora';font-weight:700;font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);border-bottom:1.5px solid var(--line);z-index:2}
+thead th{position:sticky;top:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);text-align:left;padding:16px;font-family:'Sora';font-weight:700;font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);border-bottom:1.5px solid var(--line);z-index:2; white-space:nowrap;}
 tbody td{padding:14px 16px;border-bottom:1px solid rgba(15,60,55,.06);vertical-align:middle}
 tbody tr{transition:background .2s}
 tbody tr:hover{background:rgba(15,148,136,.06)}
@@ -186,7 +185,7 @@ tbody tr:last-child td{border-bottom:none}
 }
 .group-header i { margin-right: 8px; opacity: 0.7; }
 
-.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:11.5px;font-weight:700;letter-spacing:.2px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:11.5px;font-weight:700;letter-spacing:.2px; white-space:nowrap;}
 .pill i{font-size:8px}
 .p-green{background:rgba(22,163,74,.14);color:#137a37}
 .p-red{background:rgba(229,72,77,.14);color:#c53338}
@@ -211,7 +210,6 @@ tbody tr:last-child td{border-bottom:none}
 .modal-body{padding:26px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .form-grid .full{grid-column:1/-1}
-@media(max-width:560px){.form-grid{grid-template-columns:1fr}}
 textarea.inp{min-height:86px;resize:vertical}
 .modal-foot{display:flex;gap:12px;justify-content:flex-end;margin-top:26px}
 
@@ -257,17 +255,43 @@ textarea.inp{min-height:86px;resize:vertical}
 .toast .tt{font-weight:700;font-size:14.5px;color:var(--ink)} .toast .td{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
 @keyframes slideIn{from{opacity:0;transform:translateX(80px) scale(0.95)}to{opacity:1;transform:none}}
 
+/* RESPONSIVE DESIGN UTILITIES */
 .mobile-only{display:none}
 .menu-btn{display:none}
+
+@media(max-width:1050px){
+  .grid-2{grid-template-columns:1fr}
+}
 @media(max-width:860px){
   .shell{grid-template-columns:1fr}
   .sidebar{position:fixed;left:0;top:0;z-index:70;width:270px;transform:translateX(-105%);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
-  .sidebar.open{transform:none}
+  .sidebar.open{transform:none; box-shadow:0 0 40px rgba(0,0,0,0.2);}
   .menu-btn{display:grid}
   .grid-2{grid-template-columns:1fr}
-  .content{padding:20px}
+  .content{padding:16px; overflow-x:hidden;}
   .who{display:none}
+  .table-card { border-radius: 12px; }
+  .tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  th, td { white-space: nowrap; font-size: 13px; }
+  .stat-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat { padding: 16px; }
+  .stat .val { font-size: 28px; }
+  .stat .ic { width: 40px; height: 40px; font-size: 18px; margin-bottom: 10px; }
+  .topbar { padding: 12px 16px; gap: 10px; }
+  .top-right { gap: 8px; }
+  .clock { font-size: 11px; padding: 6px 10px; }
+  .toolbar { flex-wrap: wrap; gap: 10px; }
 }
+@media(max-width:560px){
+  .form-grid{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:1fr; gap: 10px;}
+  .search { max-width: none; width: 100%; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar .btn { width: 100%; justify-content: center; }
+  .feed-item { flex-direction: column; align-items: flex-start; }
+  .feed-item time { margin-left: 0; margin-top: 6px; }
+}
+
 .spin{animation:sp 1s linear infinite} @keyframes sp{to{transform:rotate(360deg)}}
 .skeleton{background:linear-gradient(90deg,rgba(15,148,136,.06),rgba(15,148,136,.14),rgba(15,148,136,.06));background-size:200% 100%;animation:sk 1.3s infinite;border-radius:12px}
 @keyframes sk{to{background-position:-200% 0}}
@@ -364,6 +388,7 @@ textarea.inp{min-height:86px;resize:vertical}
 }
 .visitor-details-table tr td {
   padding: 4px 0;
+  white-space: normal;
 }
 .visitor-details-table .lbl {
   color: #5a6b74;
@@ -1571,249 +1596,249 @@ function fieldHtml(f, editValue = ''){
       <datalist id="${datalistId}">
           ${optionsHtml}
       </datalist>
-      <button type="button" class="btn soft" onclick="openBarcodeScanner('${esc(f.c)}')" data-testid="scan-btn-${slug(f.c)}">
-        <i class="fa-solid fa-barcode"></i> Scan Barcode
-      </button>
-      <div id="scanner-result-${slug(f.c)}" class="scanner-result" style="display:none"></div>
+      <button type="button" class="btn soft" onclick="openBarcodeScanner('${esc(f.c)}')"><i class="fa-solid fa-qrcode"></i> Scan QR/Barcode</button>
+      <div id="scanner-container-${slug(f.c)}" style="display:none; margin-top:10px;"><div id="qr-reader-${slug(f.c)}"></div><div id="scanner-result-${slug(f.c)}" class="scanner-result"></div></div>
     </div>`;
   }
+  else if(f.type==='photo') inner=`<div class="photo-field"><input type="hidden" ${nm} value="${esc(editValue)}"><img class="pv" id="pv-${slug(f.c)}" ${editValue?`src="${esc(resolveAppSheetImg(editValue, 'unknown'))}" style="display:block"`:''}><div class="row"><button type="button" class="btn soft sm" onclick="openCam('${slug(f.c)}')"><i class="fa-solid fa-camera"></i> Ambil Foto</button></div></div>`;
   else if(f.type==='employee'){
-    const list=emp();
-    const empIdx = list.findIndex(r => r[f.valueKey] === editValue);
-    inner=`<select class="inp emp-picker" ${nm} data-valuekey="${esc(f.valueKey)}" data-fills='${esc(JSON.stringify(f.fills||{}))}' data-testid="f-${slug(f.c)}" data-resolved="${esc(editValue)}">
-      <option value="">— pilih karyawan —</option>
-      ${list.map((r,i)=>`<option value="${i}" ${i===empIdx?'selected':''}>${esc(r['Nama Lengkap'])} - ${esc(r['Departemen'])}</option>`).join('')}
-    </select>`;
+      const datalistId = `dl-${slug(f.c)}`;
+      const empData = emp();
+      const optionsHtml = empData.map(r => `<option value="${esc(r[f.valueKey])}">${esc(r['Nama Lengkap'])} - ${esc(r['Departemen'])}</option>`).join('');
+      inner=`<input class="inp" list="${datalistId}" ${nm} ${valAttr} placeholder="Pilih atau Ketik..." ${req} data-testid="f-${slug(f.c)}" onchange="fillEmployee(this.value, '${f.valueKey}', '${encodeURIComponent(JSON.stringify(f.fills))}')">
+      <datalist id="${datalistId}">${optionsHtml}</datalist>`;
   }
-  else if(f.type==='photo') {
-    inner=`<div class="photo-field">
-      <img class="pv" id="pv-${slug(f.c)}" ${editValue?'src="'+resolveAppSheetImg(editValue, STATE.view)+'" style="display:block"':''}>
-      <div class="row">
-        <button type="button" class="btn soft sm" onclick="openCam('${esc(f.c)}')"><i class="fa-solid fa-camera"></i> Ambil Foto</button>
-        <input type="file" accept="image/*" class="inp" style="display:none" id="f-${slug(f.c)}" onchange="readImg(this,'${esc(f.c)}')">
-        <button type="button" class="btn soft sm" onclick="$('#f-${slug(f.c)}').click()"><i class="fa-solid fa-folder-open"></i> File</button>
-      </div>
-      <input type="hidden" ${nm} id="val-${slug(f.c)}" value="${esc(editValue)}">
-    </div>`;
+  else if(f.type==='location'){
+      const datalistId = `dl-${slug(f.c)}`;
+      const locData = rows('Master Lokasi Patroli');
+      const optionsHtml = locData.map(r => `<option value="${esc(r[f.valueKey])}">${esc(r['Nama Area'])}</option>`).join('');
+      inner=`<input class="inp" list="${datalistId}" ${nm} ${valAttr} placeholder="Pilih Lokasi..." ${req} data-testid="f-${slug(f.c)}" onchange="fillLocation(this.value, '${f.valueKey}', '${encodeURIComponent(JSON.stringify(f.fills))}')">
+      <datalist id="${datalistId}">${optionsHtml}</datalist>`;
   }
-  return `<div class="field${full}"><label>${esc(f.c)}${req?' *':''}</label>${inner}</div>`;
+  return `<div class="field${full}"><label>${esc(f.c)}${req?' <span style="color:var(--danger)">*</span>':''}</label>${inner}</div>`;
 }
 
-function initFormDynamics(){
-  document.querySelectorAll('.emp-picker').forEach(el=>{
-    el.addEventListener('change',e=>{
-      const fills=JSON.parse(e.target.dataset.fills||'{}');
-      const vKey=e.target.dataset.valuekey;
-      const idx=e.target.value;
-      const form=e.target.closest('form');
-      if(idx===''){
-        for(let k in fills){ const f=form.querySelector(`[name="${k}"]`); if(f) f.value=''; }
-        return;
-      }
-      const r=emp()[idx];
-      for(let k in fills){ const f=form.querySelector(`[name="${k}"]`); if(f) f.value=r[fills[k]]||''; }
-    });
-  });
+function fillEmployee(val, valueKey, fillsStr) {
+    if(!val) return;
+    const fills = JSON.parse(decodeURIComponent(fillsStr));
+    const e = emp().find(x => String(x[valueKey]).trim() === String(val).trim());
+    if(e) {
+        for(let k in fills) {
+            const el = document.querySelector(`[name="${k}"]`);
+            if(el) el.value = e[fills[k]] || '';
+        }
+    }
 }
 
-function closeModal(){
-  $('#modalOverlay').classList.remove('show');
-  $('#modal').innerHTML='';
+function fillLocation(val, valueKey, fillsStr) {
+    if(!val) return;
+    const fills = JSON.parse(decodeURIComponent(fillsStr));
+    const loc = rows('Master Lokasi Patroli').find(x => String(x[valueKey]).trim() === String(val).trim());
+    if(loc) {
+        for(let k in fills) {
+            const el = document.querySelector(`[name="${k}"]`);
+            if(el) el.value = loc[fills[k]] || '';
+        }
+    }
 }
+
+function closeModal(){ 
+    $('#modalOverlay').classList.remove('show'); 
+    if(window.html5QrcodeScanner) {
+        try { window.html5QrcodeScanner.clear(); } catch(e){}
+    }
+}
+
+function initFormDynamics() {}
 
 async function submitForm(key){
-  const m=MODULES[key];
-  const form=$('#entryForm');
-  if(!form.reportValidity()) return;
-  const data={};
-  m.fields.forEach(f=>{
-    if(f.type==='auto-id') data[f.c]=genId(m.idPrefix);
-    else if(f.type==='auto-shortid') data[f.c]=shortId();
-    else if(f.type==='auto-time') data[f.c]=formatNow();
-    else if(f.type==='auto-const') data[f.c]=f.val;
-    else if(f.type==='auto-officer-id') data[f.c]=STATE.user['ID Petugas'];
-    else if(f.type==='auto-officer-name') data[f.c]=STATE.user['Nama Petugas'];
-    else if(f.type==='auto-qr') data[f.c]=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${shortId()}`;
-    else if(f.type==='employee'){
-      const sel=form.querySelector(`[name="${f.c}"]`);
-      if(sel && sel.value!=='') data[f.c] = emp()[sel.value][f.valueKey];
-      else data[f.c] = '';
-    }
-    else if(f.type==='skip') data[f.c]='';
-    else {
-      const el=form.querySelector(`[name="${f.c}"]`);
-      data[f.c]=el?el.value:'';
-    }
-  });
-  
-  const btn = document.querySelector('[data-testid="save-btn"]');
-  const oldHtml = btn.innerHTML;
-  btn.innerHTML = '<i class="fa-solid fa-spinner spin"></i> Menyimpan...';
-  btn.disabled = true;
+    const form = $('#entryForm');
+    if(!form.checkValidity()) { form.reportValidity(); return; }
+    
+    const m = MODULES[key];
+    const data = {};
+    m.fields.forEach(f => {
+        if(f.type === 'auto-id') data[f.c] = genId(m.idPrefix);
+        else if(f.type === 'auto-shortid') data[f.c] = shortId();
+        else if(f.type === 'auto-time') data[f.c] = formatNow();
+        else if(f.type === 'auto-const') data[f.c] = f.val;
+        else if(f.type === 'auto-officer-id') data[f.c] = STATE.user['ID Petugas'];
+        else if(f.type === 'auto-officer-name') data[f.c] = STATE.user['Nama Petugas'];
+        else if(f.type === 'auto-qr') data[f.c] = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${shortId()}`;
+        else if(f.type === 'skip') data[f.c] = '';
+        else {
+            const el = form.querySelector(`[name="${f.c}"]`);
+            if(el) data[f.c] = el.value;
+        }
+    });
 
-  const res = await api({ action: 'addRow', sheet: m.sheet, data: data });
-  btn.innerHTML = oldHtml;
-  btn.disabled = false;
+    const btn = document.querySelector('#modal .modal-foot .btn:not(.ghost)');
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner spin"></i> Menyimpan...';
+    btn.disabled = true;
 
-  if (res.ok) {
-      closeModal();
-      toast('Berhasil', 'Data berhasil disimpan', 'ok');
-      loadData(false);
-  } else {
-      toast('Gagal', res.error || 'Terjadi kesalahan', 'err');
-  }
+    const res = await api({ action: 'addRow', sheet: m.sheet, data: data });
+
+    btn.innerHTML = oldHtml;
+    btn.disabled = false;
+
+    if (res.ok) {
+        closeModal();
+        toast('Berhasil', 'Data berhasil disimpan', 'ok');
+        loadData(false);
+    } else {
+        toast('Gagal', res.error || 'Terjadi kesalahan', 'err');
+    }
 }
 
-async function submitEditForm(key, id) {
-  const m=MODULES[key];
-  const form=$('#entryForm');
-  if(!form.reportValidity()) return;
-  const data={};
-  m.fields.forEach(f=>{
-    if(f.type==='employee'){
-      const sel=form.querySelector(`[name="${f.c}"]`);
-      if(sel && sel.value!=='') data[f.c] = emp()[sel.value]?.[f.valueKey] || form.querySelector(`[name="${f.c}"]`).dataset.resolved;
-      else data[f.c] = '';
+async function submitEditForm(key, id){
+    const form = $('#entryForm');
+    if(!form.checkValidity()) { form.reportValidity(); return; }
+    
+    const m = MODULES[key];
+    const data = {};
+    m.fields.forEach(f => {
+        const el = form.querySelector(`[name="${f.c}"]`);
+        if(el && f.type !== 'auto-id' && f.type !== 'auto-shortid' && f.type !== 'auto-time' && f.type !== 'auto-officer-id' && f.type !== 'auto-officer-name' && f.type !== 'skip' && f.type !== 'auto-const') {
+            data[f.c] = el.value;
+        }
+    });
+
+    const btn = document.querySelector('#modal .modal-foot .btn:not(.ghost)');
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner spin"></i> Update...';
+    btn.disabled = true;
+
+    const res = await api({ action: 'updateRow', sheet: m.sheet, idColumn: m.fields[0].c, idValue: id, data: data });
+
+    btn.innerHTML = oldHtml;
+    btn.disabled = false;
+
+    if (res.ok) {
+        closeModal();
+        toast('Berhasil', 'Data berhasil diperbarui', 'ok');
+        loadData(false);
+    } else {
+        toast('Gagal', res.error || 'Terjadi kesalahan', 'err');
     }
-    else if(f.type!=='auto-id' && f.type!=='auto-shortid' && f.type!=='auto-time' && f.type!=='skip'){
-      const el=form.querySelector(`[name="${f.c}"]`);
-      if(el) data[f.c]=el.value;
-    }
-  });
-
-  const btn = document.querySelector('[data-testid="save-btn"]');
-  const oldHtml = btn.innerHTML;
-  btn.innerHTML = '<i class="fa-solid fa-spinner spin"></i> Mengupdate...';
-  btn.disabled = true;
-
-  const res = await api({ action: 'updateRow', sheet: m.sheet, idColumn: m.fields[0].c, idValue: id, data: data });
-  btn.innerHTML = oldHtml;
-  btn.disabled = false;
-
-  if (res.ok) {
-      closeModal();
-      toast('Berhasil', 'Data berhasil diupdate', 'ok');
-      loadData(false);
-  } else {
-      toast('Gagal', res.error || 'Terjadi kesalahan', 'err');
-  }
 }
 
 async function checkout(key, id) {
-  if(!confirm('Proses keluar untuk data ini?')) return;
-  const m=MODULES[key];
-  const data={};
-  data[m.statusCol] = m.doneVal;
-  if(m.exitCol) data[m.exitCol] = formatNow();
-  
-  const res = await api({ action: 'updateRow', sheet: m.sheet, idColumn: m.fields[0].c, idValue: id, data: data });
-  if(res.ok) {
-    toast('Berhasil', 'Status diperbarui', 'ok');
-    loadData(false);
-  } else {
-    toast('Gagal', res.error, 'err');
-  }
+    if(isGuest()) { toast('Akses Ditolak', 'User Tamu tidak bisa melakukan proses ini', 'err'); return; }
+    if(!confirm('Tandai sudah keluar?')) return;
+    
+    const m = MODULES[key];
+    const dataUpdate = {};
+    dataUpdate[m.statusCol] = m.doneVal;
+    if(m.exitCol) dataUpdate[m.exitCol] = formatNow();
+
+    const res = await api({
+        action: 'updateRow',
+        sheet: m.sheet,
+        idColumn: m.fields[0].c,
+        idValue: id,
+        data: dataUpdate
+    });
+
+    if (res.ok) {
+        toast('Berhasil', 'Status diperbarui', 'ok');
+        loadData(false);
+    } else {
+        toast('Gagal', res.error || 'Terjadi kesalahan', 'err');
+    }
 }
 
-function getGeo(btn){
-  const inp=btn.previousElementSibling;
-  btn.innerHTML='<i class="fa-solid fa-spinner spin"></i>';
-  navigator.geolocation.getCurrentPosition(p=>{
-    inp.value=`${p.coords.latitude}, ${p.coords.longitude}`;
-    btn.innerHTML='<i class="fa-solid fa-location-crosshairs"></i>';
-  },e=>{
-    toast('Gagal Akses Lokasi', e.message, 'err');
-    btn.innerHTML='<i class="fa-solid fa-location-crosshairs"></i>';
-  });
+let activeCamF = null;
+let stream = null;
+function openCam(f) {
+    activeCamF = f;
+    $('#camOverlay').classList.add('show');
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(s => { stream = s; $('#camVideo').srcObject = s; })
+    .catch(e => toast('Kamera Error', 'Tidak dapat mengakses kamera', 'err'));
 }
-
-/* CAMERA & PHOTO UPLOAD */
-let stream=null; let currentPhotoField='';
-async function openCam(field){
-  currentPhotoField=field;
-  $('#camOverlay').classList.add('show');
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-    $('#camVideo').srcObject = stream;
-  } catch(e) {
-    toast('Error Kamera', e.message, 'err');
-    closeCam();
-  }
-}
-function closeCam(){
-  $('#camOverlay').classList.remove('show');
-  if(stream) stream.getTracks().forEach(t=>t.stop());
-  stream=null;
-}
-$('#camClose').onclick = closeCam;
+$('#camClose').onclick = () => {
+    $('#camOverlay').classList.remove('show');
+    if(stream) stream.getTracks().forEach(t => t.stop());
+};
 $('#camSnap').onclick = () => {
-  const v=$('#camVideo'); const c=$('#camCanvas');
-  c.width=v.videoWidth; c.height=v.videoHeight;
-  c.getContext('2d').drawImage(v,0,0);
-  const url=c.toDataURL('image/jpeg', 0.7);
-  const pv=$(`#pv-${slug(currentPhotoField)}`);
-  const val=$(`#val-${slug(currentPhotoField)}`);
-  if(pv) { pv.src=url; pv.style.display='block'; }
-  if(val) val.value=url;
-  closeCam();
+    const v = $('#camVideo');
+    const c = $('#camCanvas');
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    c.getContext('2d').drawImage(v, 0, 0);
+    const dataUrl = c.toDataURL('image/jpeg', 0.8);
+    
+    $(`[name="${activeCamF}"]`).value = dataUrl;
+    const pv = $(`#pv-${slug(activeCamF)}`);
+    if(pv) { pv.src = dataUrl; pv.style.display = 'block'; }
+    
+    $('#camClose').click();
 };
 
-function readImg(input, field){
-  if(!input.files||!input.files[0]) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const pv=$(`#pv-${slug(field)}`);
-    const val=$(`#val-${slug(field)}`);
-    if(pv) { pv.src=e.target.result; pv.style.display='block'; }
-    if(val) val.value=e.target.result;
-  };
-  reader.readAsDataURL(input.files[0]);
+function getGeo(btn) {
+    btn.innerHTML = '<i class="fa-solid fa-spinner spin"></i>';
+    navigator.geolocation.getCurrentPosition(pos => {
+        const inp = btn.previousElementSibling;
+        inp.value = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>';
+    }, err => {
+        toast('Gagal', 'Tidak bisa mendapatkan lokasi', 'err');
+        btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>';
+    });
 }
 
-function lightbox(src){
-  $('#lightboxImg').src=src;
-  $('#lightbox').classList.add('show');
-}
-$('#lightbox').onclick=e=>{ if(e.target.id==='lightbox') { $('#lightbox').classList.remove('show'); $('#lightboxImg').src=''; } };
-
-/* BARCODE SCANNER */
-let html5QrcodeScanner=null;
-function openBarcodeScanner(field){
-  const resBox = $(`#scanner-result-${slug(field)}`);
-  if(html5QrcodeScanner){
-    html5QrcodeScanner.clear();
-    html5QrcodeScanner=null;
-    resBox.style.display='none';
-    return;
-  }
-  const wrap=document.createElement('div');
-  wrap.id='qr-reader';
-  resBox.parentNode.insertBefore(wrap, resBox);
-  
-  html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
-  html5QrcodeScanner.render((txt)=>{
-    const inp = $(`[name="${field}"]`);
-    if(inp) {
-      inp.value = txt;
-      handleBarcodeManualInput(txt);
+function openBarcodeScanner(f) {
+    const cont = $(`#scanner-container-${slug(f)}`);
+    cont.style.display = 'block';
+    
+    if(window.html5QrcodeScanner) {
+        try { window.html5QrcodeScanner.clear(); } catch(e){}
     }
-    resBox.textContent = `Scanned: ${txt}`;
-    resBox.className = 'scanner-result success';
-    resBox.style.display = 'block';
-    html5QrcodeScanner.clear();
-    html5QrcodeScanner=null;
-    $('#qr-reader').remove();
-  }, (err)=>{ /* ignore */ });
+    
+    window.html5QrcodeScanner = new Html5QrcodeScanner(`qr-reader-${slug(f)}`, { fps: 10, qrbox: {width: 250, height: 250} }, false);
+    window.html5QrcodeScanner.render((decodedText) => {
+        const inp = $(`[name="${f}"]`);
+        if(inp) {
+            inp.value = decodedText;
+            handleBarcodeManualInput(decodedText); 
+        }
+        $(`#scanner-result-${slug(f)}`).textContent = 'Berhasil: ' + decodedText;
+        $(`#scanner-result-${slug(f)}`).className = 'scanner-result success';
+        try { window.html5QrcodeScanner.clear(); } catch(e){}
+        setTimeout(() => cont.style.display = 'none', 1000);
+    }, (err) => {
+        // ignore errors
+    });
 }
 
-/* MOBILE MENU */
-$('#menuBtn').onclick = () => $('#sidebar').classList.add('open');
-document.addEventListener('click', e => {
-  const sb=$('#sidebar'), mb=$('#menuBtn');
-  if(sb && mb && !sb.contains(e.target) && !mb.contains(e.target) && sb.classList.contains('open')){
-    sb.classList.remove('open');
-  }
+function lightbox(src) {
+    $('#lightboxImg').src = src;
+    $('#lightbox').classList.add('show');
+}
+$('#lightbox').onclick = e => { if(e.target.id === 'lightbox') $('#lightbox').classList.remove('show'); };
+
+// MENU TOGGLE RESPONSIVE
+$('#menuBtn').addEventListener('click', () => {
+    $('#sidebar').classList.add('open');
 });
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', (e) => {
+    const sb = $('#sidebar');
+    const mb = $('#menuBtn');
+    if (window.innerWidth <= 860 && sb.classList.contains('open') && !sb.contains(e.target) && !mb.contains(e.target)) {
+        sb.classList.remove('open');
+    }
+});
+
+/* INIT */
+const sUser = localStorage.getItem(SESS_KEY);
+if(sUser) {
+    STATE.user = JSON.parse(sUser);
+    enterApp();
+} else {
+    $('#login').style.display = 'flex';
+}
+
 </script>
 </body>
 </html>
