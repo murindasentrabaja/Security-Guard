@@ -68,6 +68,34 @@ img{display:block;max-width:100%}
 .gp-photo{border:2px dashed rgba(15,148,136,.3);border-radius:16px;padding:16px;text-align:center;background:rgba(15,148,136,.03)}
 .gp-photo img{width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-bottom:12px;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
 .gp-photo input[type=file]{display:none}
+
+/* ---------- KARTU ID DIGITAL TAMU ---------- */
+.gp-status-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:20px;font-size:11.5px;font-weight:700;letter-spacing:.3px;margin:0 auto 18px}
+.gp-idcard{display:flex;flex-direction:column;align-items:center;text-align:center}
+.gp-photo-round{width:88px;height:88px;border-radius:50%;overflow:hidden;background:rgba(15,148,136,.08);display:grid;place-items:center;margin-bottom:12px;border:3px solid #fff;box-shadow:0 8px 20px -8px rgba(15,148,136,.5)}
+.gp-photo-round img{width:100%;height:100%;object-fit:cover}
+.gp-photo-round i{font-size:34px;color:var(--primary)}
+.gp-idcard-name{font-family:'Sora',sans-serif;font-weight:700;font-size:19px}
+.gp-idcard-company{color:var(--ink-soft);font-size:13px;margin-top:2px}
+.gp-assembly-point{margin-top:16px;padding:14px 16px;border-radius:16px;background:rgba(15,148,136,.08);font-size:13px;text-align:left;line-height:1.65}
+.gp-assembly-point b{color:var(--primary-ink)}
+.gp-card-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.gp-reg-section{margin-bottom:18px;text-align:left}
+.gp-reg-section:last-child{margin-bottom:0}
+.gp-reg-title{font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;color:var(--primary-ink);display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.gp-reg-list{padding-left:20px;font-size:13.5px;color:var(--ink);line-height:1.7}
+.gp-reg-list li{margin-bottom:4px}
+.gp-emergency-banner{background:linear-gradient(135deg,#ff7a7a,var(--danger));color:#fff;border-radius:16px;padding:16px 18px;margin:0 0 20px;animation:emergencyGlow 1.4s ease-in-out infinite}
+.gp-emergency-title{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;display:flex;align-items:center;gap:9px;letter-spacing:.3px}
+.gp-emergency-desc{font-size:13px;margin-top:6px;line-height:1.55;opacity:.96}
+@keyframes emergencyGlow{0%,100%{box-shadow:0 0 0 0 rgba(229,72,77,.5)}50%{box-shadow:0 0 0 10px rgba(229,72,77,0)}}
+
+/* ---------- EMERGENCY (PANEL PETUGAS) ---------- */
+.emergency-pulse{animation:emergencyBtnPulse 1.3s ease-in-out infinite}
+@keyframes emergencyBtnPulse{0%,100%{box-shadow:0 0 0 0 rgba(229,72,77,.55)}50%{box-shadow:0 0 0 9px rgba(229,72,77,0)}}
+.emergency-banner{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#ff7a7a,var(--danger));color:#fff;border-radius:14px;padding:12px 18px;margin:18px 26px 0;font-size:13.5px;font-weight:600;animation:emergencyGlow 1.4s ease-in-out infinite}
+.emergency-banner i{font-size:16px}
+@media(max-width:1050px){.emergency-btn-label{display:none}}
 @media(max-width:480px){.gp-card{padding:26px 20px}}
 .login-card img.logo { max-height: 80px; margin: 0 auto 18px; display: block; }
 .login-card h1{font-size:30px;letter-spacing:.5px}
@@ -296,6 +324,7 @@ textarea.inp{min-height:86px;resize:vertical}
   .top-right { gap: 8px; }
   .clock { font-size: 11px; padding: 6px 10px; }
   .toolbar { flex-wrap: wrap; gap: 10px; }
+  .emergency-banner { margin: 14px 16px 0; }
 }
 @media(max-width:560px){
   .form-grid{grid-template-columns:1fr}
@@ -558,12 +587,14 @@ textarea.inp{min-height:86px;resize:vertical}
         </div>
         <div class="top-right">
           <div class="clock"><span class="pulse" id="syncDot"></span><span id="syncTxt">Online MSB ERP System</span> · <span id="clock"></span></div>
+          <button class="btn danger sm" id="emergencyBtn" data-testid="emergency-btn" style="display:none" title="Status Darurat"><i class="fa-solid fa-triangle-exclamation"></i><span class="emergency-btn-label"> Aktifkan Emergency</span></button>
           <button class="icon-btn" id="refreshBtn" title="Muat ulang"><i class="fa-solid fa-rotate-right"></i></button>
           <button class="icon-btn" id="cfgBtn" title="Pengaturan koneksi" data-testid="settings-btn"><i class="fa-solid fa-gear"></i></button>
           <div class="avatar" id="userAvatar">A</div>
           <div class="who"><div class="n" id="userName">Petugas</div><div class="r" id="userRole">Petugas Piket</div></div>
         </div>
       </div>
+      <div class="emergency-banner" id="emergencyAppBar" style="display:none"><i class="fa-solid fa-triangle-exclamation"></i><span id="emergencyAppBarText"></span></div>
       <div class="content" id="content"></div>
       
       <!-- FOOTER -->
@@ -603,7 +634,7 @@ textarea.inp{min-height:86px;resize:vertical}
 const URL_KEY='sentra_apps_url';
 const DB_KEY='sentra_demo_db';
 const SESS_KEY='sentra_user';
-let CONFIG={ url: localStorage.getItem(URL_KEY) || 'https://script.google.com/macros/s/AKfycbxkGThOUy6dBLZq2djbm6FNnx2YFSs4xtcnTfpby7gPeBkUCsQwfnkOOanJfqCY0QeT/exec' };
+let CONFIG={ url: localStorage.getItem(URL_KEY) || 'https://script.google.com/macros/s/AKfycbys7yYCWyLBmqVEqdc9yFZb8DtpJx-D1LI62FQfsyPMkmDbB0tsGx9m2snCXnbyows/exec' };
 const isDemo = ()=> !(CONFIG.url && CONFIG.url.indexOf('http')===0);
 let STATE={ user:null, data:{}, view:'dashboard', chart:null };
 
@@ -620,7 +651,8 @@ const SHEETS={
   'Transaksi Buku Tamu':['ID Kunjungan','Waktu Masuk','Kategori Pengunjung','Nama Pengunjung','Perusahaan/Instansi','Tujuan Kunjungan','Nama Karyawan','Departemen yang Dituju','Foto Identitas','Status Kunjungan','Waktu Keluar'],
   'Insiden':['ID Insiden','Waktu Pelaporan','Kategori Insiden','Deskripsi Kejadian','Tindakan Awal','ID Pelapor','Bukti Visual','Status Investigasi'],
   'Transaksi Kendaraan':['ID Kendaraan','Kategori','Waktu','Nomor Polisi','Jenis Kendaraan','Kategori Kepentingan','Nama Pengemudi','Perusahaan Asal','No Surat Jalan','Status Kendaraan','Waktu Keluar','ID Petugas'],
-  'Token Registrasi Tamu':['Token','Status','Waktu Dibuat','ID Petugas','Waktu Digunakan','Nama Pengunjung']
+  'Token Registrasi Tamu':['Token','Status','Waktu Dibuat','ID Petugas','Waktu Digunakan','Nama Pengunjung','ID Kunjungan'],
+  'Status Darurat':['Status','Pesan','ID Petugas','Waktu Aktivasi']
 };
 
 /* =====================================================================
@@ -902,7 +934,10 @@ function seedDemo(){
   
   db['Transaksi Keterlambatan'].rows=[
     {'ID Keterlambatan':genId('KL'),'Waktu Tiba':formatNow(),'ID Karyawan':'2401007','Nama Karyawan':'Amir','Departemen':'Production','Alasan Keterlambatan':'Ban motor bocor di jalan','Tindakan Korektif':'Diberi peringatan lisan','ID Petugas Piket':'2503041'}];
-    
+
+  db['Status Darurat'].rows=[
+    {'Status':'Nonaktif','Pesan':'','ID Petugas':'','Waktu Aktivasi':''}];
+
   localStorage.setItem(DB_KEY,JSON.stringify(db));
 }
 function demoDB(){seedDemo();return JSON.parse(localStorage.getItem(DB_KEY));}
@@ -939,13 +974,36 @@ async function demoApi(p){
     const t=db['Token Registrasi Tamu'].rows.find(r=>String(r['Token']).trim()===String(p.token).trim());
     if(!t) return {ok:false,error:'Token tidak ditemukan',invalidToken:true};
     if(t['Status']!=='Aktif') return {ok:false,error:'Link sudah digunakan',invalidToken:true};
-    t['Status']='Terpakai'; t['Waktu Digunakan']=formatNow(); t['Nama Pengunjung']=p.data['Nama Pengunjung']||'';
     const idBaru=genId('BT');
+    t['Status']='Terpakai'; t['Waktu Digunakan']=formatNow(); t['Nama Pengunjung']=p.data['Nama Pengunjung']||''; t['ID Kunjungan']=idBaru;
     const row={}; SHEETS['Transaksi Buku Tamu'].forEach(h=>row[h]=p.data[h]!=null?p.data[h]:'');
     row['ID Kunjungan']=idBaru; row['Waktu Masuk']=formatNow(); row['Status Kunjungan']='Di Dalam'; row['Waktu Keluar']='';
     db['Transaksi Buku Tamu'].rows.push(row);
     saveDemo(db);
     return {ok:true,idKunjungan:idBaru};
+  }
+  if(p.action==='getGuestCard'){
+    const t=db['Token Registrasi Tamu'].rows.find(r=>String(r['Token']).trim()===String(p.token).trim());
+    const visitId=t?String(t['ID Kunjungan']||'').trim():'';
+    if(!visitId) return {ok:true,found:false};
+    const g=db['Transaksi Buku Tamu'].rows.find(r=>String(r['ID Kunjungan']).trim()===visitId);
+    if(!g) return {ok:true,found:false};
+    return {ok:true,found:true,active:g['Status Kunjungan']==='Di Dalam',guest:g};
+  }
+  if(p.action==='getEmergencyStatus'){
+    const s=db['Status Darurat'].rows[0]||{'Status':'Nonaktif','Pesan':'','Waktu Aktivasi':''};
+    return {ok:true,active:s['Status']==='Aktif',status:s['Status']||'Nonaktif',pesan:s['Pesan']||'',waktu:s['Waktu Aktivasi']||''};
+  }
+  if(p.action==='setEmergencyStatus'){
+    if(!db['Status Darurat'].rows.length) db['Status Darurat'].rows.push({'Status':'Nonaktif','Pesan':'','ID Petugas':'','Waktu Aktivasi':''});
+    const s=db['Status Darurat'].rows[0];
+    const aktif=String(p.status||'').trim()==='Aktif';
+    s['Status']=aktif?'Aktif':'Nonaktif';
+    s['Pesan']=aktif?(p.pesan||'Kondisi darurat terjadi di area perusahaan. Segera menuju titik kumpul terdekat mengikuti arahan petugas keamanan.'):'';
+    s['ID Petugas']=p.idPetugas||'';
+    s['Waktu Aktivasi']=formatNow();
+    saveDemo(db);
+    return {ok:true,active:aktif};
   }
   return {ok:false,error:'unknown'};
 }
@@ -1888,9 +1946,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-/* =====================================================================
-   PENDAFTARAN TAMU MANDIRI — via QR / Link sekali pakai (tanpa login)
-===================================================================== */
+/* Kolom form pendaftaran tamu mandiri (diisi tamu sendiri via QR/Link) */
 const GUEST_FORM_FIELDS=[
   {c:'Kategori Pengunjung',type:'select',opts:['Tamu Umum','Vendor / Supplier','Tamu VIP','Kandidat Interview','Keluarga Karyawan','Kurir / Ekspedisi','Lainnya']},
   {c:'Nama Pengunjung',type:'text',req:true},
@@ -1901,8 +1957,150 @@ const GUEST_FORM_FIELDS=[
   {c:'Foto Identitas',type:'photo',full:true}
 ];
 
+/* =====================================================================
+   TITIK KUMPUL DARURAT (MASTER POINT)
+===================================================================== */
+const MASTER_POINTS={
+  produksi:{ key:'produksi', label:'Area Produksi', lat:-6.516176, lng:107.671630 },
+  kantor:  { key:'kantor',   label:'Area Kantor',   lat:-6.516784, lng:107.673682 }
+};
+
+// Titik kumpul default berdasarkan departemen yang dituju tamu.
+// Hanya kunjungan ke Production/Produksi yang diarahkan ke titik Produksi,
+// selain itu (General Affairs, HR, Finance, dll) diarahkan ke titik Kantor.
+function resolveMasterPointByDept(dept){
+  const d=String(dept||'').toLowerCase();
+  return d.indexOf('produk')>-1 ? MASTER_POINTS.produksi : MASTER_POINTS.kantor;
+}
+
+function haversineMeters(lat1,lng1,lat2,lng2){
+  const R=6371000, toRad=x=>x*Math.PI/180;
+  const dLat=toRad(lat2-lat1), dLng=toRad(lng2-lng1);
+  const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// Titik kumpul TERDEKAT dari suatu koordinat (dibandingkan ke kedua master point).
+function nearestMasterPoint(lat,lng){
+  const dP=haversineMeters(lat,lng,MASTER_POINTS.produksi.lat,MASTER_POINTS.produksi.lng);
+  const dK=haversineMeters(lat,lng,MASTER_POINTS.kantor.lat,MASTER_POINTS.kantor.lng);
+  return dP<=dK ? MASTER_POINTS.produksi : MASTER_POINTS.kantor;
+}
+
+// Buka Google Maps menuju titik kumpul TERDEKAT dari posisi GPS pengguna saat ini.
+// Jika lokasi tidak tersedia/ditolak dalam waktu singkat, jatuh ke titik kumpul
+// yang sudah ditetapkan berdasarkan departemen kunjungan (fallbackPoint).
+function openEmergencyMap(fallbackPoint){
+  const goTo=(pt)=>{
+    const url=`https://www.google.com/maps/dir/?api=1&destination=${pt.lat},${pt.lng}&travelmode=walking`;
+    window.open(url,'_blank');
+  };
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      pos=>goTo(nearestMasterPoint(pos.coords.latitude,pos.coords.longitude)),
+      ()=>goTo(fallbackPoint||MASTER_POINTS.kantor),
+      {enableHighAccuracy:true,timeout:6000,maximumAge:30000}
+    );
+  } else {
+    goTo(fallbackPoint||MASTER_POINTS.kantor);
+  }
+}
+
+/* =====================================================================
+   PERATURAN PERUSAHAAN — Workshop Konstruksi Baja
+===================================================================== */
+const COMPANY_REGULATIONS=[
+  { title:'Keselamatan & Kesehatan Kerja (K3)', icon:'fa-hard-hat', items:[
+    'Wajib menggunakan Alat Pelindung Diri (APD) minimal helm safety dan sepatu safety saat memasuki area produksi/workshop.',
+    'Dilarang mendekati mesin produksi, alat berat, crane, forklift, atau area pengelasan/pemotongan baja tanpa didampingi karyawan/petugas berwenang.',
+    'Wajib mengikuti rambu keselamatan, jalur pejalan kaki, dan batas area terbatas yang terpasang di lokasi.',
+    'Segera laporkan ke karyawan pendamping atau petugas keamanan apabila melihat kondisi atau tindakan yang tidak aman.'
+  ]},
+  { title:'Akses & Area Terlarang', icon:'fa-door-closed', items:[
+    'Tamu hanya diperkenankan berada di area sesuai tujuan kunjungan dan wajib didampingi karyawan yang dituju.',
+    'Dilarang memasuki area produksi/workshop, gudang bahan baku, dan ruang panel listrik tanpa izin serta pendampingan resmi.',
+    'Kartu ID Digital wajib dibawa selama berada di lingkungan perusahaan dan ditunjukkan kepada petugas bila diminta.'
+  ]},
+  { title:'Tata Tertib Kunjungan', icon:'fa-user-check', items:[
+    'Data registrasi wajib diisi dengan benar dan sesuai identitas asli.',
+    'Dilarang membawa senjata tajam/api, bahan mudah terbakar/meledak, atau minuman beralkohol ke dalam area perusahaan.',
+    'Dilarang mengambil foto/video area produksi tanpa izin tertulis dari manajemen untuk menjaga kerahasiaan proses kerja.',
+    'Kunjungan mengikuti jam operasional perusahaan, kecuali atas izin khusus dari karyawan/petugas terkait.'
+  ]},
+  { title:'Prosedur Keadaan Darurat', icon:'fa-triangle-exclamation', items:[
+    'Jika menerima notifikasi darurat pada Kartu ID Digital, tetap tenang dan segera menuju titik kumpul (assembly point) yang tertera pada kartu Anda.',
+    'Ikuti instruksi petugas keamanan/karyawan pendamping; jangan mengambil barang atau kembali ke area kunjungan sebelum dinyatakan aman.',
+    'Kenali posisi Alat Pemadam Api Ringan (APAR) dan pintu/jalur evakuasi terdekat dari area kunjungan Anda.',
+    'Jangan panik dan jangan berlari; utamakan keselamatan diri dan bantu rekan yang membutuhkan pertolongan bila memungkinkan.'
+  ]},
+  { title:'Lingkungan & Ketertiban', icon:'fa-leaf', items:[
+    'Dilarang merokok di luar area yang telah ditentukan (smoking area).',
+    'Jaga kebersihan dan ketertiban selama berada di lingkungan perusahaan.',
+    'Kendaraan tamu wajib parkir di area yang telah disediakan sesuai arahan petugas keamanan.'
+  ]}
+];
+
+function openCompanyRegulations(){
+  const sections=COMPANY_REGULATIONS.map(sec=>`
+    <div class="gp-reg-section">
+      <div class="gp-reg-title"><i class="fa-solid ${sec.icon}"></i> ${esc(sec.title)}</div>
+      <ul class="gp-reg-list">${sec.items.map(it=>`<li>${esc(it)}</li>`).join('')}</ul>
+    </div>`).join('');
+  $('#modal').innerHTML=`
+    <div class="modal-head" style="background:linear-gradient(135deg,var(--primary-2),var(--primary));">
+      <div class="mh-ic"><i class="fa-solid fa-scroll"></i></div>
+      <div><h3>Peraturan Perusahaan</h3><p>PT Murinda Sentra Baja &middot; Workshop Konstruksi Baja</p></div>
+      <button class="x" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      ${sections}
+      <div class="hint" style="text-align:center;margin-top:6px">Dengan memasuki area perusahaan, Anda dianggap telah membaca dan menyetujui peraturan di atas.</div>
+    </div>
+    <div class="modal-foot" style="justify-content:center">
+      <button type="button" class="btn" onclick="closeModal()"><i class="fa-solid fa-check"></i> Saya Mengerti</button>
+    </div>`;
+  $('#modalOverlay').classList.add('show');
+}
+
+function beepAlert(){
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext;
+    if(!Ctx) return;
+    const ctx=new Ctx();
+    [0,0.35,0.7].forEach(t=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='square'; o.frequency.value=880;
+      o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime+t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+t+0.28);
+      o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+0.3);
+    });
+  }catch(e){}
+}
+
+function notifyGuestEmergency(pesan){
+  try{
+    if('Notification' in window){
+      if(Notification.permission==='granted'){
+        new Notification('KONDISI DARURAT — MSB',{body:pesan||'Segera menuju titik kumpul terdekat.'});
+      } else if(Notification.permission!=='denied'){
+        Notification.requestPermission().then(perm=>{
+          if(perm==='granted') new Notification('KONDISI DARURAT — MSB',{body:pesan||'Segera menuju titik kumpul terdekat.'});
+        });
+      }
+    }
+    if(navigator.vibrate) navigator.vibrate([300,150,300,150,300]);
+  }catch(e){}
+  beepAlert();
+}
+
+/* =====================================================================
+   PENDAFTARAN TAMU MANDIRI — via QR / Link sekali pakai (tanpa login)
+===================================================================== */
 function guestParams(){ return new URLSearchParams(location.search); }
 function isGuestFormMode(){ const p=guestParams(); return p.get('daftar')==='1' && !!p.get('token'); }
+function isGuestCardMode(){ const p=guestParams(); return p.get('kartu')==='1' && !!p.get('token'); }
 function guestFormLink(token){
   const url=new URL(location.href);
   url.search='';
@@ -1910,11 +2108,21 @@ function guestFormLink(token){
   url.searchParams.set('token',token);
   return url.toString();
 }
-function gpWrap(inner){
+function guestCardLink(token){
+  const url=new URL(location.href);
+  url.search='';
+  url.searchParams.set('kartu','1');
+  url.searchParams.set('token',token);
+  return url.toString();
+}
+function gpWrap(inner, opts){
+  opts = opts || {};
+  const title = opts.title || 'PENDAFTARAN TAMU';
+  const sub = opts.sub || 'PT Murinda Sentra Baja &middot; Security Gate System';
   return `<div class="gp-card glass">
     <img src="MSB Logo.png" alt="MSB Logo" class="gp-logo">
-    <h1>PENDAFTARAN TAMU</h1>
-    <div class="gp-sub">PT Murinda Sentra Baja &middot; Security Gate System</div>
+    <h1>${title}</h1>
+    <div class="gp-sub">${sub}</div>
     ${inner}
   </div>`;
 }
@@ -2016,7 +2224,17 @@ async function submitGuestPublicForm(token){
   const res=await api({action:'submitGuestEntry',token,data});
 
   if(res.ok){
-    renderGuestSuccess(res.idKunjungan);
+    // Registrasi berhasil → otomatis terbitkan Kartu ID Digital & tautkan URL
+    // ke link kartu (?kartu=1&token=...) supaya tamu bisa membuka/bookmark
+    // ulang kartunya selama masih berstatus "Di Dalam".
+    const guestObj=Object.assign({},data,{
+      'ID Kunjungan': res.idKunjungan||'',
+      'Waktu Masuk': formatNow(),
+      'Status Kunjungan': 'Di Dalam'
+    });
+    history.replaceState(null,'',guestCardLink(token));
+    renderGuestCard(guestObj, token, true);
+    startGuestCardPolling(token);
   } else {
     btn.innerHTML=old;
     btn.disabled=false;
@@ -2025,11 +2243,131 @@ async function submitGuestPublicForm(token){
   }
 }
 
-function renderGuestSuccess(idKunjungan){
+/* =====================================================================
+   KARTU ID DIGITAL TAMU (tampil otomatis setelah registrasi, atau saat
+   tamu membuka ulang link ?kartu=1&token=...). Otomatis nonaktif begitu
+   petugas checkout tamu tsb (status berubah dari "Di Dalam").
+===================================================================== */
+async function initGuestCardMode(){
+  $('#login').style.display='none';
+  $('#guestPublic').style.display='block';
   $('#guestPublicInner').innerHTML=gpWrap(`
-    <div class="gp-status-ic c-teal"><i class="fa-solid fa-circle-check"></i></div>
-    <div class="gp-status-title">Registrasi Berhasil</div>
-    <div class="gp-status-desc">Terima kasih! Data Anda sudah tercatat${idKunjungan?` dengan ID <b>${esc(idKunjungan)}</b>`:''}. Silakan menuju pos keamanan untuk verifikasi.</div>`);
+    <div class="gp-status-ic c-teal"><i class="fa-solid fa-spinner spin"></i></div>
+    <div class="gp-status-title">Memuat Kartu...</div>
+    <div class="gp-status-desc">Mohon tunggu sebentar</div>`, {title:'KARTU ID DIGITAL'});
+
+  const token=guestParams().get('token');
+  const res=await api({action:'getGuestCard',token});
+  if(!res.ok || !res.found){ renderGuestCardNotFound(); return; }
+  if(!res.active){ renderGuestCardRevoked(res.guest); return; }
+  renderGuestCard(res.guest, token, false);
+  startGuestCardPolling(token);
+}
+
+function renderGuestCard(guest, token, justRegistered){
+  const rawPhoto=guest['Foto Identitas']||'';
+  const photoUrl=rawPhoto?resolveAppSheetImg(rawPhoto,'bukutamu'):'';
+  const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(guest['ID Kunjungan']||'VISITOR')}`;
+  const point=resolveMasterPointByDept(guest['Departemen yang Dituju']);
+
+  $('#guestPublicInner').innerHTML=gpWrap(`
+    <div id="gp-emergency-slot"></div>
+    <div class="gp-idcard">
+      <span class="gp-status-pill p-green"><i class="fa-solid fa-circle-check"></i> AKTIF &middot; SEDANG BERKUNJUNG</span>
+      <div class="gp-photo-round">
+        ${photoUrl?`<img src="${esc(photoUrl)}" onerror="this.onerror=null; this.src='https://placehold.co/88x88/eaf3f0/0f9488?text=TAMU';">`:`<i class="fa-solid fa-user"></i>`}
+      </div>
+      <div class="gp-idcard-name">${esc(guest['Nama Pengunjung']||'Tamu')}</div>
+      <div class="gp-idcard-company">${esc(guest['Perusahaan/Instansi']||'Perorangan / Umum')}</div>
+
+      <table class="visitor-details-table" style="width:100%;margin-top:16px">
+        <tr><td class="lbl">Bertemu</td><td class="val">${esc(guest['Nama Karyawan']||'-')}</td></tr>
+        <tr><td class="lbl">Departemen</td><td class="val">${esc(guest['Departemen yang Dituju']||'-')}</td></tr>
+        <tr><td class="lbl">Tujuan</td><td class="val">${esc(guest['Tujuan Kunjungan']||'-')}</td></tr>
+        <tr><td class="lbl">Waktu Masuk</td><td class="val">${esc(guest['Waktu Masuk']||'-')}</td></tr>
+      </table>
+
+      <div class="visitor-qr-box" style="margin-top:12px">
+        <img src="${qrUrl}" alt="QR">
+        <div class="visitor-id-code">ID KUNJUNGAN<br>${esc(guest['ID Kunjungan']||'-')}</div>
+      </div>
+    </div>
+
+    <div class="gp-assembly-point">
+      <i class="fa-solid fa-people-group"></i> Titik kumpul darurat Anda: <b>${esc(point.label)}</b><br>
+      Jika terjadi kondisi darurat, tekan tombol di bawah untuk membuka arah menuju titik kumpul terdekat dari posisi Anda saat ini.
+    </div>
+
+    <div class="gp-card-actions">
+      <button type="button" class="btn ghost full" id="gpMapBtn"><i class="fa-solid fa-map-location-dot"></i> Buka Peta Titik Kumpul</button>
+      <button type="button" class="btn full" id="gpRulesBtn"><i class="fa-solid fa-scroll"></i> Lihat Peraturan Perusahaan</button>
+    </div>
+
+    <div class="hint" style="text-align:center;margin-top:16px"><i class="fa-solid fa-shield-halved"></i> Kartu ini otomatis nonaktif begitu Anda tercatat keluar (check-out) oleh petugas keamanan.</div>
+  `, {title:'KARTU ID DIGITAL'});
+
+  window.__gpAssignedPoint=point;
+  $('#gpMapBtn').onclick=()=>openEmergencyMap(point);
+  $('#gpRulesBtn').onclick=()=>openCompanyRegulations();
+
+  if(justRegistered){
+    setTimeout(()=>openCompanyRegulations(),500);
+  }
+}
+
+function renderCardEmergencyBanner(res){
+  const slot=document.getElementById('gp-emergency-slot');
+  if(!slot) return;
+  const wasActive=slot.dataset.active==='1';
+  if(res && res.active){
+    slot.dataset.active='1';
+    slot.innerHTML=`
+      <div class="gp-emergency-banner">
+        <div class="gp-emergency-title"><i class="fa-solid fa-triangle-exclamation"></i> KONDISI DARURAT</div>
+        <div class="gp-emergency-desc">${esc(res.pesan||'Segera evakuasi mengikuti arahan petugas keamanan.')}</div>
+        <button type="button" class="btn full" style="background:#fff;color:var(--danger);margin-top:12px" onclick="openEmergencyMap(window.__gpAssignedPoint)"><i class="fa-solid fa-map-location-dot"></i> Buka Peta ke Titik Kumpul</button>
+      </div>`;
+    if(!wasActive) notifyGuestEmergency(res.pesan);
+  } else {
+    slot.dataset.active='0';
+    slot.innerHTML='';
+  }
+}
+
+function renderGuestCardRevoked(guest){
+  stopGuestCardPolling();
+  const waktuKeluar=guest && guest['Waktu Keluar']?guest['Waktu Keluar']:'';
+  $('#guestPublicInner').innerHTML=gpWrap(`
+    <div class="gp-status-ic" style="background:linear-gradient(135deg,#9aa7ad,#5a6b74)"><i class="fa-solid fa-lock"></i></div>
+    <div class="gp-status-title">Kartu Tidak Aktif</div>
+    <div class="gp-status-desc">Anda sudah tercatat <b>keluar (check-out)</b>${waktuKeluar?` pada ${esc(waktuKeluar)}`:''} sehingga akses Kartu ID Digital ini otomatis dinonaktifkan. Terima kasih atas kunjungan Anda ke PT Murinda Sentra Baja.</div>`,
+    {title:'KARTU ID DIGITAL'});
+}
+
+function renderGuestCardNotFound(){
+  $('#guestPublicInner').innerHTML=gpWrap(`
+    <div class="gp-status-ic" style="background:linear-gradient(135deg,#ff9db0,var(--danger))"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div class="gp-status-title">Kartu Tidak Ditemukan</div>
+    <div class="gp-status-desc">Link kartu ini tidak valid. Silakan hubungi petugas keamanan di pos untuk mendapatkan link pendaftaran baru.</div>`,
+    {title:'KARTU ID DIGITAL'});
+}
+
+let guestCardPoll=null;
+function stopGuestCardPolling(){ if(guestCardPoll){ clearInterval(guestCardPoll); guestCardPoll=null; } }
+function startGuestCardPolling(token){
+  stopGuestCardPolling();
+  guestCardPoll=setInterval(async ()=>{
+    if(!document.getElementById('gp-emergency-slot')){ stopGuestCardPolling(); return; }
+    const [cardRes,emgRes]=await Promise.all([
+      api({action:'getGuestCard',token}),
+      api({action:'getEmergencyStatus'})
+    ]);
+    if(cardRes && cardRes.ok && cardRes.found && !cardRes.active){
+      renderGuestCardRevoked(cardRes.guest);
+      return;
+    }
+    if(emgRes && emgRes.ok) renderCardEmergencyBanner(emgRes);
+  }, 6000);
 }
 
 /* ---------- Modal Petugas: Buat & pantau Link Pendaftaran Mandiri ---------- */
@@ -2084,6 +2422,8 @@ async function pollGuestToken(token){
 /* INIT */
 if(isGuestFormMode()){
   initGuestPublicMode();
+} else if(isGuestCardMode()){
+  initGuestCardMode();
 } else {
   const sUser = localStorage.getItem(SESS_KEY);
   if(sUser) {
