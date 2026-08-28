@@ -1063,8 +1063,124 @@ function enterApp(){
   
   buildNav();
   refreshSync();
+  initEmergencyUI();
   loadData(true);
   setInterval(()=>loadData(false),3600000); 
+}
+
+/* =====================================================================
+   EMERGENCY (PANEL PETUGAS)
+   Tombol di topbar untuk mengaktifkan/menonaktifkan Status Darurat.
+   Saat aktif: tombol berdenyut (emergency-pulse) & topbar menampilkan
+   emergencyAppBar. Status di-polling berkala supaya semua petugas yang
+   sedang login melihat status yang sama meski diubah dari device lain.
+===================================================================== */
+const EMERGENCY_DEFAULT_PESAN='Kondisi darurat terjadi di area perusahaan. Segera menuju titik kumpul terdekat mengikuti arahan petugas keamanan.';
+let emergencyState={active:false,pesan:'',waktu:''};
+let emergencyPoll=null;
+
+function initEmergencyUI(){
+  const btn=$('#emergencyBtn');
+  if(!btn) return;
+  btn.style.display = isGuest() ? 'none' : 'inline-flex';
+  btn.onclick = onEmergencyBtnClick;
+  refreshEmergencyStatus();
+  if(emergencyPoll) clearInterval(emergencyPoll);
+  emergencyPoll=setInterval(refreshEmergencyStatus, 10000);
+}
+
+async function refreshEmergencyStatus(){
+  const res=await api({action:'getEmergencyStatus'});
+  if(!res || !res.ok) return;
+  const wasActive=emergencyState.active;
+  emergencyState={active:!!res.active,pesan:res.pesan||'',waktu:res.waktu||''};
+  applyEmergencyState();
+  if(emergencyState.active && !wasActive) beepAlert();
+}
+
+function applyEmergencyState(){
+  const btn=$('#emergencyBtn');
+  const bar=$('#emergencyAppBar');
+  const barTxt=$('#emergencyAppBarText');
+  if(!btn) return;
+  if(emergencyState.active){
+    btn.classList.add('emergency-pulse');
+    btn.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i><span class="emergency-btn-label"> Nonaktifkan Emergency</span>';
+    if(bar){
+      bar.style.display='flex';
+      if(barTxt) barTxt.textContent='KONDISI DARURAT AKTIF — '+(emergencyState.pesan||EMERGENCY_DEFAULT_PESAN)+(emergencyState.waktu?(' · sejak '+emergencyState.waktu):'');
+    }
+  } else {
+    btn.classList.remove('emergency-pulse');
+    btn.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i><span class="emergency-btn-label"> Aktifkan Emergency</span>';
+    if(bar) bar.style.display='none';
+  }
+}
+
+function onEmergencyBtnClick(){
+  if(isGuest()){ toast('Akses Ditolak','User Tamu tidak diperbolehkan mengubah status darurat','err'); return; }
+  if(emergencyState.active) openEmergencyDeactivateModal();
+  else openEmergencyActivateModal();
+}
+
+function openEmergencyActivateModal(){
+  $('#modal').innerHTML=`
+    <div class="modal-head" style="background:linear-gradient(135deg,#ff7a7a,var(--danger));">
+      <div class="mh-ic"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div><h3>Aktifkan Status Darurat</h3><p>Notifikasi langsung tampil di Kartu ID Digital seluruh tamu yang sedang berkunjung</p></div>
+      <button class="x" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Pesan Darurat (opsional)</label>
+        <textarea class="inp" id="emergencyPesanInput" placeholder="${esc(EMERGENCY_DEFAULT_PESAN)}" data-testid="emergency-pesan-input"></textarea>
+      </div>
+      <div class="hint"><i class="fa-solid fa-circle-info"></i> Kosongkan untuk memakai pesan standar. Seluruh tamu akan menerima notifikasi &amp; tombol untuk membuka arah menuju titik kumpul terdekat dari posisi mereka.</div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn ghost" onclick="closeModal()">Batal</button>
+      <button type="button" class="btn danger" id="emergencyActivateBtn" data-testid="emergency-activate-confirm-btn" onclick="submitEmergencyStatus('Aktif')"><i class="fa-solid fa-triangle-exclamation"></i> Aktifkan Sekarang</button>
+    </div>`;
+  $('#modalOverlay').classList.add('show');
+}
+
+function openEmergencyDeactivateModal(){
+  $('#modal').innerHTML=`
+    <div class="modal-head">
+      <div class="mh-ic c-green"><i class="fa-solid fa-shield-halved"></i></div>
+      <div><h3>Nonaktifkan Status Darurat</h3><p>Status akan kembali normal &amp; notifikasi darurat pada tamu akan hilang</p></div>
+      <button class="x" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="hint" style="margin-top:0"><i class="fa-solid fa-circle-info"></i> Pastikan situasi sudah benar-benar aman sebelum menonaktifkan status darurat.</div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn ghost" onclick="closeModal()">Batal</button>
+      <button type="button" class="btn" id="emergencyDeactivateBtn" data-testid="emergency-deactivate-confirm-btn" onclick="submitEmergencyStatus('Nonaktif')"><i class="fa-solid fa-check"></i> Nonaktifkan</button>
+    </div>`;
+  $('#modalOverlay').classList.add('show');
+}
+
+async function submitEmergencyStatus(status){
+  const aktif=status==='Aktif';
+  const btn=$(aktif?'#emergencyActivateBtn':'#emergencyDeactivateBtn');
+  const old=btn?btn.innerHTML:'';
+  if(btn){ btn.innerHTML='<i class="fa-solid fa-spinner spin"></i> Memproses...'; btn.disabled=true; }
+  const pesanEl=$('#emergencyPesanInput');
+  const res=await api({
+    action:'setEmergencyStatus',
+    status:status,
+    pesan: aktif ? (pesanEl?pesanEl.value.trim():'') : '',
+    idPetugas: STATE.user ? STATE.user['ID Petugas'] : ''
+  });
+  if(btn){ btn.innerHTML=old; btn.disabled=false; }
+  if(res && res.ok){
+    closeModal();
+    toast(aktif?'Emergency Diaktifkan':'Emergency Dinonaktifkan', aktif?'Notifikasi darurat telah dikirim ke seluruh tamu':'Status darurat kembali normal', aktif?'err':'ok');
+    refreshEmergencyStatus();
+  } else {
+    toast('Gagal', (res&&res.error)||'Tidak dapat mengubah status darurat','err');
+  }
 }
 
 /* =====================================================================
