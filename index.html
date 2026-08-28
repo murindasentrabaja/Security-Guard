@@ -54,6 +54,21 @@ img{display:block;max-width:100%}
 /* ---------- LOGIN ---------- */
 #login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;z-index:50}
 .login-card{width:min(420px,100%);border-radius:var(--r-lg);padding:38px 34px;text-align:center;animation:pop .7s cubic-bezier(.2,.8,.2,1) both}
+
+/* ---------- PENDAFTARAN TAMU MANDIRI (public, no login) ---------- */
+#guestPublic{display:none;position:fixed;inset:0;z-index:55;overflow-y:auto;padding:24px}
+#guestPublicInner{width:min(520px,100%);margin:20px auto}
+.gp-card{border-radius:var(--r-lg);padding:32px 28px;animation:pop .6s cubic-bezier(.2,.8,.2,1) both}
+.gp-card .gp-logo{max-height:64px;margin:0 auto 14px;display:block}
+.gp-card h1{font-size:22px;letter-spacing:.3px;text-align:center}
+.gp-card .gp-sub{color:var(--ink-soft);font-size:13.5px;margin:6px 0 24px;text-align:center}
+.gp-status-ic{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:30px;color:#fff;margin:0 auto 18px}
+.gp-status-title{font-size:18px;font-weight:700;text-align:center;font-family:'Sora',sans-serif}
+.gp-status-desc{font-size:13.5px;color:var(--ink-soft);text-align:center;margin-top:8px;line-height:1.6}
+.gp-photo{border:2px dashed rgba(15,148,136,.3);border-radius:16px;padding:16px;text-align:center;background:rgba(15,148,136,.03)}
+.gp-photo img{width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-bottom:12px;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+.gp-photo input[type=file]{display:none}
+@media(max-width:480px){.gp-card{padding:26px 20px}}
 .login-card img.logo { max-height: 80px; margin: 0 auto 18px; display: block; }
 .login-card h1{font-size:30px;letter-spacing:.5px}
 .login-card .sub{color:var(--ink-soft);font-size:14px;margin:6px 0 26px}
@@ -513,6 +528,11 @@ textarea.inp{min-height:86px;resize:vertical}
   </form>
 </div>
 
+<!-- ============ PENDAFTARAN TAMU MANDIRI (via QR/Link, tanpa login) ============ -->
+<div id="guestPublic">
+  <div id="guestPublicInner"></div>
+</div>
+
 <!-- ============ APP ============ -->
 <div id="app">
   <div class="shell">
@@ -583,7 +603,7 @@ textarea.inp{min-height:86px;resize:vertical}
 const URL_KEY='sentra_apps_url';
 const DB_KEY='sentra_demo_db';
 const SESS_KEY='sentra_user';
-let CONFIG={ url: localStorage.getItem(URL_KEY) || 'https://script.google.com/macros/s/AKfycbw1hBx8ESLD-DRUX30iagRMTOZjW5V8grs0uz47KSz9Pf1FMKxTWvDZA1WjjjnVvC6_/exec' };
+let CONFIG={ url: localStorage.getItem(URL_KEY) || 'https://script.google.com/macros/s/AKfycbxkGThOUy6dBLZq2djbm6FNnx2YFSs4xtcnTfpby7gPeBkUCsQwfnkOOanJfqCY0QeT/exec' };
 const isDemo = ()=> !(CONFIG.url && CONFIG.url.indexOf('http')===0);
 let STATE={ user:null, data:{}, view:'dashboard', chart:null };
 
@@ -599,7 +619,8 @@ const SHEETS={
   'Pengajuan':['ID Izin','ID Karyawan','Nama Lengkap','Jabatan','Departemen','Klasifikasi Izin','Jenis Izin','Tanggal Mulai','Jam Keluar','Jam Kembali','Kembali ke Kantor?','ID Petugas','Nama Petugas','Manager','HRD','Security Approval'],
   'Transaksi Buku Tamu':['ID Kunjungan','Waktu Masuk','Kategori Pengunjung','Nama Pengunjung','Perusahaan/Instansi','Tujuan Kunjungan','Nama Karyawan','Departemen yang Dituju','Foto Identitas','Status Kunjungan','Waktu Keluar'],
   'Insiden':['ID Insiden','Waktu Pelaporan','Kategori Insiden','Deskripsi Kejadian','Tindakan Awal','ID Pelapor','Bukti Visual','Status Investigasi'],
-  'Transaksi Kendaraan':['ID Kendaraan','Kategori','Waktu','Nomor Polisi','Jenis Kendaraan','Kategori Kepentingan','Nama Pengemudi','Perusahaan Asal','No Surat Jalan','Status Kendaraan','Waktu Keluar','ID Petugas']
+  'Transaksi Kendaraan':['ID Kendaraan','Kategori','Waktu','Nomor Polisi','Jenis Kendaraan','Kategori Kepentingan','Nama Pengemudi','Perusahaan Asal','No Surat Jalan','Status Kendaraan','Waktu Keluar','ID Petugas'],
+  'Token Registrasi Tamu':['Token','Status','Waktu Dibuat','ID Petugas','Waktu Digunakan','Nama Pengunjung']
 };
 
 /* =====================================================================
@@ -899,6 +920,33 @@ async function demoApi(p){
   if(p.action==='getData') return {ok:true,data:db};
   if(p.action==='addRow'){ if(!db[p.sheet]) return {ok:false,error:'sheet?'}; const row={};SHEETS[p.sheet].forEach(h=>row[h]=p.data[h]!=null?p.data[h]:''); db[p.sheet].rows.push(row); saveDemo(db); return {ok:true}; }
   if(p.action==='updateRow'){ const rows=db[p.sheet].rows; const r=rows.find(x=>String(x[p.idColumn]).trim()===String(p.idValue).trim()); if(r){Object.assign(r,p.data);saveDemo(db);return{ok:true};} return {ok:false,error:'not found'}; }
+  if(p.action==='getEmployeeOptions'){
+    const list=(db['Master Karyawan'].rows||[]).filter(r=>String(r['Nama Lengkap']||'').trim()!=='').map(r=>({'Nama Lengkap':r['Nama Lengkap'],'Departemen':r['Departemen']||''}));
+    return {ok:true,employees:list};
+  }
+  if(p.action==='generateGuestToken'){
+    const token=shortId().toUpperCase();
+    db['Token Registrasi Tamu'].rows.push({'Token':token,'Status':'Aktif','Waktu Dibuat':formatNow(),'ID Petugas':p.idPetugas||'','Waktu Digunakan':'','Nama Pengunjung':''});
+    saveDemo(db);
+    return {ok:true,token:token};
+  }
+  if(p.action==='checkGuestToken'){
+    const t=db['Token Registrasi Tamu'].rows.find(r=>String(r['Token']).trim()===String(p.token).trim());
+    if(!t) return {ok:true,valid:false,status:'Tidak Ditemukan'};
+    return {ok:true,valid:t['Status']==='Aktif',status:t['Status']};
+  }
+  if(p.action==='submitGuestEntry'){
+    const t=db['Token Registrasi Tamu'].rows.find(r=>String(r['Token']).trim()===String(p.token).trim());
+    if(!t) return {ok:false,error:'Token tidak ditemukan',invalidToken:true};
+    if(t['Status']!=='Aktif') return {ok:false,error:'Link sudah digunakan',invalidToken:true};
+    t['Status']='Terpakai'; t['Waktu Digunakan']=formatNow(); t['Nama Pengunjung']=p.data['Nama Pengunjung']||'';
+    const idBaru=genId('BT');
+    const row={}; SHEETS['Transaksi Buku Tamu'].forEach(h=>row[h]=p.data[h]!=null?p.data[h]:'');
+    row['ID Kunjungan']=idBaru; row['Waktu Masuk']=formatNow(); row['Status Kunjungan']='Di Dalam'; row['Waktu Keluar']='';
+    db['Transaksi Buku Tamu'].rows.push(row);
+    saveDemo(db);
+    return {ok:true,idKunjungan:idBaru};
+  }
   return {ok:false,error:'unknown'};
 }
 
@@ -1170,8 +1218,14 @@ function renderModule(key){
     addBtnHtml = `<button class="btn" id="addBtn" data-testid="add-btn"><i class="fa-solid fa-plus"></i> ${m.master?'Tambah Data':'Input '+m.title}</button>`;
   }
 
+  let linkBtnHtml = '';
+  if (key === 'bukutamu' && !isGuest()) {
+    linkBtnHtml = `<button class="btn soft" id="guestLinkBtn" data-testid="guest-link-btn"><i class="fa-solid fa-qrcode"></i> Link Pendaftaran Mandiri</button>`;
+  }
+
   let html=`<div class="toolbar">
     <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="searchBox" placeholder="Cari di ${esc(m.title)}..." data-testid="search-input"></div>
+    ${linkBtnHtml}
     ${addBtnHtml}
   </div>
   <div class="table-card glass"><div class="tbl-scroll"><table>
@@ -1182,6 +1236,9 @@ function renderModule(key){
   
   if ($('#addBtn')) {
     $('#addBtn').onclick=()=>openForm(key);
+  }
+  if ($('#guestLinkBtn')) {
+    $('#guestLinkBtn').onclick=()=>openGuestLinkModal();
   }
 
   $('#searchBox').oninput=e=>{
@@ -1647,6 +1704,7 @@ function closeModal(){
     if(window.html5QrcodeScanner) {
         try { window.html5QrcodeScanner.clear(); } catch(e){}
     }
+    if(guestLinkPoll) { clearInterval(guestLinkPoll); guestLinkPoll = null; }
 }
 
 function initFormDynamics() {}
@@ -1830,13 +1888,210 @@ document.addEventListener('click', (e) => {
     }
 });
 
+/* =====================================================================
+   PENDAFTARAN TAMU MANDIRI — via QR / Link sekali pakai (tanpa login)
+===================================================================== */
+const GUEST_FORM_FIELDS=[
+  {c:'Kategori Pengunjung',type:'select',opts:['Tamu Umum','Vendor / Supplier','Tamu VIP','Kandidat Interview','Keluarga Karyawan','Kurir / Ekspedisi','Lainnya']},
+  {c:'Nama Pengunjung',type:'text',req:true},
+  {c:'Perusahaan/Instansi',type:'text'},
+  {c:'Tujuan Kunjungan',type:'text',req:true,full:true},
+  {c:'Nama Karyawan',type:'employee',valueKey:'Nama Lengkap',fills:{'Departemen yang Dituju':'Departemen'},req:true},
+  {c:'Departemen yang Dituju',type:'text',readonly:true},
+  {c:'Foto Identitas',type:'photo',full:true}
+];
+
+function guestParams(){ return new URLSearchParams(location.search); }
+function isGuestFormMode(){ const p=guestParams(); return p.get('daftar')==='1' && !!p.get('token'); }
+function guestFormLink(token){
+  const url=new URL(location.href);
+  url.search='';
+  url.searchParams.set('daftar','1');
+  url.searchParams.set('token',token);
+  return url.toString();
+}
+function gpWrap(inner){
+  return `<div class="gp-card glass">
+    <img src="MSB Logo.png" alt="MSB Logo" class="gp-logo">
+    <h1>PENDAFTARAN TAMU</h1>
+    <div class="gp-sub">PT Murinda Sentra Baja &middot; Security Gate System</div>
+    ${inner}
+  </div>`;
+}
+
+async function initGuestPublicMode(){
+  $('#login').style.display='none';
+  $('#guestPublic').style.display='block';
+  $('#guestPublicInner').innerHTML=gpWrap(`
+    <div class="gp-status-ic c-teal"><i class="fa-solid fa-spinner spin"></i></div>
+    <div class="gp-status-title">Memeriksa Link...</div>
+    <div class="gp-status-desc">Mohon tunggu sebentar</div>`);
+
+  const token=guestParams().get('token');
+  const [chk,empRes]=await Promise.all([
+    api({action:'checkGuestToken',token}),
+    api({action:'getEmployeeOptions'})
+  ]);
+  // Hanya nama & departemen karyawan yang dimuat di halaman publik ini —
+  // BUKAN seluruh data (getData), supaya link yang dibagikan lewat QR
+  // tidak membocorkan data lain (email petugas, log tamu lain, dll).
+  if(empRes && empRes.ok) STATE.data['Master Karyawan']={headers:['Nama Lengkap','Departemen'],rows:empRes.employees};
+
+  if(!chk.ok || !chk.valid){ renderGuestInvalid(chk.status); return; }
+  renderGuestForm(token);
+}
+
+function renderGuestInvalid(status){
+  const sudah = status==='Terpakai';
+  $('#guestPublicInner').innerHTML=gpWrap(`
+    <div class="gp-status-ic" style="background:linear-gradient(135deg,#ff9db0,var(--danger))"><i class="fa-solid ${sudah?'fa-circle-check':'fa-triangle-exclamation'}"></i></div>
+    <div class="gp-status-title">${sudah?'Link Sudah Digunakan':'Link Tidak Valid'}</div>
+    <div class="gp-status-desc">${sudah?'Link pendaftaran ini bersifat sekali pakai dan sudah digunakan sebelumnya.':'Link ini tidak ditemukan atau sudah kedaluwarsa.'} Silakan hubungi petugas keamanan di pos untuk mendapatkan QR/link baru.</div>`);
+}
+
+function renderGuestForm(token){
+  const fieldsHtml=GUEST_FORM_FIELDS.map(f=>gpFieldHtml(f)).join('');
+  $('#guestPublicInner').innerHTML=gpWrap(`
+    <form id="guestForm">
+      <div class="form-grid">${fieldsHtml}</div>
+      <div class="hint" style="text-align:center;margin-top:6px"><i class="fa-solid fa-shield-halved"></i> Link ini hanya berlaku <b>1 kali</b> pengisian.</div>
+      <button class="btn full" type="button" id="guestSubmitBtn" style="margin-top:18px" data-testid="guest-submit-btn"><i class="fa-solid fa-clipboard-check"></i> Daftar Sekarang</button>
+    </form>`);
+  $('#guestSubmitBtn').onclick=()=>submitGuestPublicForm(token);
+}
+
+function gpFieldHtml(f){
+  const full=f.full?' full':'';
+  const req=f.req?' required':'';
+  const nm=`name="${esc(f.c)}"`;
+  let inner='';
+  if(f.type==='text') inner=`<input class="inp" ${nm} ${f.readonly?'readonly':''}${req} data-testid="gf-${slug(f.c)}">`;
+  else if(f.type==='select') inner=`<select class="inp" ${nm} data-testid="gf-${slug(f.c)}">${f.opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`;
+  else if(f.type==='employee'){
+    const datalistId=`gdl-${slug(f.c)}`;
+    const empData=emp();
+    const optionsHtml=empData.map(r=>`<option value="${esc(r[f.valueKey])}">${esc(r['Nama Lengkap'])} - ${esc(r['Departemen'])}</option>`).join('');
+    inner=`<input class="inp" list="${datalistId}" ${nm} placeholder="Pilih atau ketik nama karyawan..." ${req} data-testid="gf-${slug(f.c)}" onchange="fillEmployee(this.value, '${f.valueKey}', '${encodeURIComponent(JSON.stringify(f.fills))}')">
+    <datalist id="${datalistId}">${optionsHtml}</datalist>`;
+  }
+  else if(f.type==='photo'){
+    inner=`<div class="gp-photo">
+      <input type="hidden" ${nm} value="">
+      <img id="gp-pv-${slug(f.c)}">
+      <button type="button" class="btn soft sm" onclick="document.getElementById('gp-file-${slug(f.c)}').click()"><i class="fa-solid fa-camera"></i> Ambil / Unggah Foto Identitas</button>
+      <input type="file" accept="image/*" capture="environment" id="gp-file-${slug(f.c)}" onchange="gpHandlePhoto(this,'${esc(f.c)}')">
+    </div>`;
+  }
+  return `<div class="field${full}"><label>${esc(f.c)}${req?' <span style="color:var(--danger)">*</span>':''}</label>${inner}</div>`;
+}
+
+function gpHandlePhoto(input,fieldName){
+  const file=input.files && input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const holder=document.querySelector(`#guestForm [name="${fieldName}"]`);
+    if(holder) holder.value=reader.result;
+    const pv=document.getElementById(`gp-pv-${slug(fieldName)}`);
+    if(pv){ pv.src=reader.result; pv.style.display='block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitGuestPublicForm(token){
+  const form=$('#guestForm');
+  if(!form.checkValidity()){ form.reportValidity(); return; }
+
+  const data={};
+  GUEST_FORM_FIELDS.forEach(f=>{
+    const el=form.querySelector(`[name="${f.c}"]`);
+    if(el) data[f.c]=el.value;
+  });
+
+  const btn=$('#guestSubmitBtn');
+  const old=btn.innerHTML;
+  btn.innerHTML='<i class="fa-solid fa-spinner spin"></i> Mengirim...';
+  btn.disabled=true;
+
+  const res=await api({action:'submitGuestEntry',token,data});
+
+  if(res.ok){
+    renderGuestSuccess(res.idKunjungan);
+  } else {
+    btn.innerHTML=old;
+    btn.disabled=false;
+    toast('Gagal',res.error||'Link mungkin sudah digunakan orang lain','err');
+    if(res.invalidToken) renderGuestInvalid('Terpakai');
+  }
+}
+
+function renderGuestSuccess(idKunjungan){
+  $('#guestPublicInner').innerHTML=gpWrap(`
+    <div class="gp-status-ic c-teal"><i class="fa-solid fa-circle-check"></i></div>
+    <div class="gp-status-title">Registrasi Berhasil</div>
+    <div class="gp-status-desc">Terima kasih! Data Anda sudah tercatat${idKunjungan?` dengan ID <b>${esc(idKunjungan)}</b>`:''}. Silakan menuju pos keamanan untuk verifikasi.</div>`);
+}
+
+/* ---------- Modal Petugas: Buat & pantau Link Pendaftaran Mandiri ---------- */
+let guestLinkPoll=null;
+async function openGuestLinkModal(){
+  $('#modal').innerHTML=`<div class="modal-head"><div class="mh-ic c-teal"><i class="fa-solid fa-qrcode"></i></div><div><h3>Link Pendaftaran Mandiri</h3><p>Tamu mengisi data sendiri via QR, otomatis sekali pakai</p></div><button class="x" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body" id="guestLinkBody" style="text-align:center"><i class="fa-solid fa-spinner spin"></i> Membuat link...</div>`;
+  $('#modalOverlay').classList.add('show');
+  await generateNewGuestLink();
+}
+
+async function generateNewGuestLink(){
+  if(guestLinkPoll){ clearInterval(guestLinkPoll); guestLinkPoll=null; }
+  const res=await api({action:'generateGuestToken',idPetugas:STATE.user?STATE.user['ID Petugas']:''});
+  if(!res.ok){ $('#guestLinkBody').innerHTML=`<div class="hint">Gagal membuat link: ${esc(res.error||'')}</div>`; return; }
+  renderGuestLinkBody(res.token);
+  guestLinkPoll=setInterval(()=>pollGuestToken(res.token),4000);
+}
+
+function renderGuestLinkBody(token){
+  const link=guestFormLink(token);
+  const qr=`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(link)}`;
+  $('#guestLinkBody').innerHTML=`
+    <img src="${qr}" style="width:200px;height:200px;margin:0 auto 16px;border-radius:14px;box-shadow:0 8px 20px -8px rgba(0,0,0,.25)">
+    <div class="field"><input class="inp" id="guestLinkText" readonly value="${esc(link)}" style="text-align:center;font-size:12.5px"></div>
+    <div id="guestLinkStatus" class="hint" style="margin-top:0"><i class="fa-solid fa-circle-notch spin"></i> Menunggu tamu mengisi... (link ini otomatis mati setelah 1x dipakai)</div>
+    <div class="modal-foot" style="justify-content:center;margin-top:18px">
+      <button type="button" class="btn ghost" onclick="copyGuestLink()"><i class="fa-solid fa-copy"></i> Salin Link</button>
+      <button type="button" class="btn" onclick="generateNewGuestLink()"><i class="fa-solid fa-rotate"></i> Buat Link Baru</button>
+    </div>`;
+}
+
+function copyGuestLink(){
+  const inp=$('#guestLinkText');
+  inp.select();
+  if(navigator.clipboard) navigator.clipboard.writeText(inp.value).then(()=>toast('Tersalin','Link berhasil disalin','ok')).catch(()=>document.execCommand('copy'));
+  else document.execCommand('copy');
+}
+
+async function pollGuestToken(token){
+  const statusEl=document.getElementById('guestLinkStatus');
+  if(!statusEl){ if(guestLinkPoll){clearInterval(guestLinkPoll);guestLinkPoll=null;} return; }
+  const res=await api({action:'checkGuestToken',token});
+  if(!res.ok) return;
+  if(!res.valid){
+    clearInterval(guestLinkPoll); guestLinkPoll=null;
+    toast('Tamu Terdaftar','Link telah dipakai & otomatis dinonaktifkan. Link baru dibuat.','ok');
+    generateNewGuestLink();
+  }
+}
+
 /* INIT */
-const sUser = localStorage.getItem(SESS_KEY);
-if(sUser) {
-    STATE.user = JSON.parse(sUser);
-    enterApp();
+if(isGuestFormMode()){
+  initGuestPublicMode();
 } else {
-    $('#login').style.display = 'flex';
+  const sUser = localStorage.getItem(SESS_KEY);
+  if(sUser) {
+      STATE.user = JSON.parse(sUser);
+      enterApp();
+  } else {
+      $('#login').style.display = 'flex';
+  }
 }
 
 </script>
