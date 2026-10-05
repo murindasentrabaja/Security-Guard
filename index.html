@@ -94,7 +94,7 @@ const p2=n=>String(n).padStart(2,'0'),now=()=>{const d=new Date();return `${p2(d
 const pd=s=>{const m=String(s||'').match(/(\d+)\/(\d+)\/(\d+)/);return m?new Date(+m[3],m[2]-1,+m[1]):null},sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let nb=0;function busy(n){nb+=n;$('#tp').classList.toggle('on',nb>0)}
 function toast(m,t=''){const d=document.createElement('div');d.className=t;d.textContent=m;$('#tst').append(d);setTimeout(()=>d.remove(),3500)}
-async function api(action,payload={},quiet){if(!quiet)busy(1);const ac=new AbortController,tm=setTimeout(()=>ac.abort(),40000);try{const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({action,session:S.session,...payload}),signal:ac.signal});const j=await r.json();if(j.auth&&S.user)logout();return j}catch(e){return{ok:false,net:true,error:'Koneksi gagal. Periksa jaringan atau URL server.'}}finally{clearTimeout(tm);if(!quiet)busy(-1)}}
+async function api(action,payload={},quiet,ms=40000){if(!quiet)busy(1);const ac=new AbortController,tm=setTimeout(()=>ac.abort(),ms);try{const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({action,session:S.session,...payload}),signal:ac.signal});const j=await r.json();if(j.auth&&S.user)logout();return j}catch(e){return{ok:false,net:true,error:'Koneksi gagal. Periksa jaringan atau URL server.'}}finally{clearTimeout(tm);if(!quiet)busy(-1)}}
 function modal(h){const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="md">${h}</div>`;o.onclick=e=>{if(e.target===o)o.remove()};document.body.append(o);o.close=()=>o.remove();return o}
 const badge=v=>{if(v===''||v==null)return'';const s=String(v);const k=/Keluar$|Selesai|Disetujui|Kembali$|Aktif|Valid$|Aman|Hadir|Baik|Dicatat|Terpakai|Tersedia/.test(s)&&!/Belum|Menunggu|Nonaktif/.test(s)?2:/Menunggu|Dipinjam|Dilaporkan|Investigasi|Open|Proses/.test(s)?3:/Ditolak|Hilang|NonValid|Terlambat|Rusak|Berat|Kritis|Luar|Nonaktif|Blacklist|Dicabut/.test(s)?4:/Di Dalam|Terjadwal/.test(s)?1:0;return`<span class="bg b${k}">${esc(s)}</span>`};
 
@@ -203,6 +203,10 @@ const load=async n=>(await sheets([n]))[0];
 function buildKd(){const d=S.cache['Kamus Data'];if(d)d.rows.forEach(r=>S.kd[r['Sheet']+'|'+r['Nama Kolom']]=r)}
 
 /* ===== BOOT & LOGIN ===== */
+/* (dideklarasikan di atas boot: boot memanggil halaman tamu langsung, jadi variabel ini harus sudah ada) */
+const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},lsDel=k=>{try{localStorage.removeItem(k)}catch(e){}};
+const toCard=tk=>location.replace(`?kartu=1&token=${tk}`);let ofT=0;
+const slowMsg=()=>{const t=[[4000,'Menyambung ke server…'],[10000,'Server sedang sibuk, mohon tunggu sebentar…'],[20000,'Masih memuat. Bila belum muncul, tutup lalu buka ulang link ini.']].map(([ms,m])=>setTimeout(()=>{const e=$('#spm');if(e&&$('#splash').style.display!=='none')e.textContent=m},ms));return()=>t.forEach(clearTimeout)};
 const P=new URLSearchParams(location.search);
 (async function boot(){
  const tk=P.get('token'),hide=()=>{$('#splash').style.opacity=0;setTimeout(()=>$('#splash').style.display='none',400)};
@@ -210,7 +214,7 @@ const P=new URLSearchParams(location.search);
  else{let s=null;try{s=JSON.parse(sessionStorage.getItem('sec'))}catch(e){}
   if(s&&s.session){S.session=s.session;S.user=s.user;S.company=s.company||S.company;enter()}
   else{const r=await api('getLoginUsers',{},1);if(!r.ok){$('#spm').textContent=r.error;return}S.company=r.company;S.users=r.users;loginUI()}}
- hide()})();
+ hide()})().catch(e=>{const m=$('#spm');if(m)m.textContent='Gagal memuat halaman ('+(e&&e.message||e)+'). Coba muat ulang.'});
 function loginUI(){
  $('#root').innerHTML=`<div id="login"><div class="lcard">${LG(58)}<h2>${esc(S.company)}</h2><p>Sistem Keamanan Terpadu — masuk untuk memulai dinas.</p><div class="ck"><span class="ck-d"></span><b class="ck-t"></b></div>
  <label>Petugas</label><div class="who"><div class="av" id="lav"></div><select class="in" id="lu">${S.users.map(u=>`<option value="${esc(u.id)}">${esc(u.nama)}</option>`).join('')}</select></div>
@@ -333,14 +337,16 @@ const base=()=>location.origin+location.pathname;
 async function guestLink(){
  const r=await api('generateGuestToken');if(!r.ok)return toast(r.error,'e');const link=`${base()}?daftar=1&token=${r.token}`;
  const o=modal(`<h3>${ico('link','#3b82f6')} Registrasi Mandiri Tamu</h3><div style="text-align:center"><img src="${qr(link)}" width="220" height="220" style="border-radius:16px;border:1px solid var(--line)"><p id="gs" style="font-weight:700;color:#B54708">⏳ Menunggu tamu mendaftar… (berlaku ${r.menit} menit, sekali pakai)</p><input class="in" readonly value="${esc(link)}" id="lk"></div><div class="row"><button class="btn g" id="cp">📋 Salin link</button><button class="btn wr" id="nw">Buat baru</button><button class="btn" id="cl">Tutup</button></div>`);
- let live=true;const iv=setInterval(async()=>{if(!document.body.contains(o)){clearInterval(iv);return}const c=await api('checkGuestToken',{token:r.token},1);if(!c.ok)return;if(c.status!=='Aktif'){clearInterval(iv);$('#gs',o).style.color=c.status==='Terpakai'?'#067647':'#B42318';$('#gs',o).textContent=c.status==='Terpakai'?'✅ Tamu sudah mendaftar':'⌛ Link kedaluwarsa';if(c.status==='Terpakai'&&cur==='tamu')go(cur)}},4000);
+ (async()=>{while(document.body.contains(o)){await sleep(5000);if(document.hidden)continue;const c=await api('checkGuestToken',{token:r.token},1);if(!c.ok||!document.body.contains(o))continue;if(c.status!=='Aktif'){$('#gs',o).style.color=c.status==='Terpakai'?'#067647':'#B42318';$('#gs',o).textContent=c.status==='Terpakai'?'✅ Tamu sudah mendaftar':'⌛ Link kedaluwarsa';if(c.status==='Terpakai'&&cur==='tamu')go(cur);break}}})();
  $('#cp',o).onclick=()=>{navigator.clipboard?.writeText(link);toast('Link disalin','s')};$('#nw',o).onclick=()=>{o.close();guestLink()};$('#cl',o).onclick=o.close}
 
 /* ===== HALAMAN PUBLIK TAMU ===== */
-const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},lsDel=k=>{try{localStorage.removeItem(k)}catch(e){}};
-const toCard=tk=>location.replace(`?kartu=1&token=${tk}`);let ofT=0;
 async function guestForm(tk){
- clearTimeout(ofT);const[c,o]=await Promise.all([api('checkGuestToken',{token:tk},1),api('getPublicOptions',{},1)]);$('#splash').style.display='none';
+ clearTimeout(ofT);const stop=slowMsg();let c,o;const r0=await api('guestInit',{token:tk},1,25000);
+ if(r0.ok){c=r0.c;o=r0.o||{ok:false}}
+ else if(!r0.net&&/tidak dikenal/i.test(r0.error||'')){[c,o]=await Promise.all([api('checkGuestToken',{token:tk},1),api('getPublicOptions',{},1)])}
+ else{c=r0;o={ok:false}}
+ stop();$('#splash').style.display='none';
  const pub=(h,t)=>$('#root').innerHTML=`<div class="pub"><div class="card"><div class="ph"><h2>${t}</h2></div><div class="pb empty">${h}</div></div></div>`;
  /* 1) sinyal terputus / server tidak merespons: jangan simpulkan "link tidak berlaku" */
  if(!c.ok||(c.valid&&!o.ok)){if(lsGet('gc_'+tk))return toCard(tk);
@@ -396,7 +402,7 @@ async function guestCard(tk){
   const was=G.on&&G.e&&G.e.active;G.on=!!(r.found&&r.active);if(e&&e.ok)G.e=e;
   const ck=JSON.stringify(r);if(ck!==G.x){G.x=ck;$('#cd').innerHTML=r.found?cardHtml(r):`<div class="pb empty">${ico('search','#94a3b8')}Kartu tidak ditemukan.</div>`}
   const ne=G.on&&G.e&&G.e.active;if(ne&&!was){watch();if(navigator.vibrate)navigator.vibrate([300,150,300,150,600]);scrollTo(0,0)}if(!ne)unwatch();paintE()};
- await draw();setInterval(draw,10000)}
+ const stop=slowMsg();await draw();stop();(async()=>{for(;;){await sleep(document.hidden?30000:10000);try{await draw()}catch(e){}}})()}
 
 
 
