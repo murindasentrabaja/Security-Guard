@@ -65,6 +65,7 @@ html{-webkit-text-size-adjust:100%}body{min-height:100vh;min-height:100dvh}
 .pub{min-height:100vh;min-height:100dvh;display:flex;padding:max(18px,env(safe-area-inset-top)) 16px max(18px,env(safe-area-inset-bottom))}.pub .card{margin:auto;width:min(480px,100%)}
 .ph{background:linear-gradient(160deg,rgba(255,255,255,.55),rgba(184,206,245,.32));border-bottom:1px solid rgba(255,255,255,.75)}.pb{padding:20px 22px 26px}
 .r2{display:grid;grid-template-columns:1.4fr 1fr;gap:0 12px}
+.off{padding:10px 14px;background:#fbefd6;color:#9a6512;font-weight:600;font-size:12px;text-align:center;display:flex;gap:8px;align-items:center;justify-content:center}.off .ic{width:16px;height:16px}.idn{font-size:19px;font-weight:800;letter-spacing:1.2px;font-variant-numeric:tabular-nums;user-select:all}.ok2{color:var(--ok)}
 .eg{padding:18px;background:linear-gradient(160deg,#e0545c,#b8323a);color:#fff;text-align:center}
 .eg p{margin:6px 0 12px;font-weight:600;line-height:1.45}.eh{font-weight:800;font-size:16px;letter-spacing:.4px;display:flex;gap:8px;align-items:center;justify-content:center;animation:pulse 1.4s infinite}
 .eg .et{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.38);border-radius:16px;padding:12px;margin:8px 0;display:grid;gap:3px}.eg .et small{font-weight:700;font-size:10px;letter-spacing:.8px;opacity:.9}.eg .et b{font-size:19px}.eg .et span,.eg .et em{font-size:13px;font-style:normal}
@@ -93,7 +94,7 @@ const p2=n=>String(n).padStart(2,'0'),now=()=>{const d=new Date();return `${p2(d
 const pd=s=>{const m=String(s||'').match(/(\d+)\/(\d+)\/(\d+)/);return m?new Date(+m[3],m[2]-1,+m[1]):null},sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let nb=0;function busy(n){nb+=n;$('#tp').classList.toggle('on',nb>0)}
 function toast(m,t=''){const d=document.createElement('div');d.className=t;d.textContent=m;$('#tst').append(d);setTimeout(()=>d.remove(),3500)}
-async function api(action,payload={},quiet){if(!quiet)busy(1);try{const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({action,session:S.session,...payload})});const j=await r.json();if(j.auth&&S.user)logout();return j}catch(e){return{ok:false,error:'Koneksi gagal. Periksa jaringan atau URL server.'}}finally{if(!quiet)busy(-1)}}
+async function api(action,payload={},quiet){if(!quiet)busy(1);const ac=new AbortController,tm=setTimeout(()=>ac.abort(),40000);try{const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({action,session:S.session,...payload}),signal:ac.signal});const j=await r.json();if(j.auth&&S.user)logout();return j}catch(e){return{ok:false,net:true,error:'Koneksi gagal. Periksa jaringan atau URL server.'}}finally{clearTimeout(tm);if(!quiet)busy(-1)}}
 function modal(h){const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="md">${h}</div>`;o.onclick=e=>{if(e.target===o)o.remove()};document.body.append(o);o.close=()=>o.remove();return o}
 const badge=v=>{if(v===''||v==null)return'';const s=String(v);const k=/Keluar$|Selesai|Disetujui|Kembali$|Aktif|Valid$|Aman|Hadir|Baik|Dicatat|Terpakai|Tersedia/.test(s)&&!/Belum|Menunggu|Nonaktif/.test(s)?2:/Menunggu|Dipinjam|Dilaporkan|Investigasi|Open|Proses/.test(s)?3:/Ditolak|Hilang|NonValid|Terlambat|Rusak|Berat|Kritis|Luar|Nonaktif|Blacklist|Dicabut/.test(s)?4:/Di Dalam|Terjadwal/.test(s)?1:0;return`<span class="bg b${k}">${esc(s)}</span>`};
 
@@ -332,20 +333,40 @@ const base=()=>location.origin+location.pathname;
 async function guestLink(){
  const r=await api('generateGuestToken');if(!r.ok)return toast(r.error,'e');const link=`${base()}?daftar=1&token=${r.token}`;
  const o=modal(`<h3>${ico('link','#3b82f6')} Registrasi Mandiri Tamu</h3><div style="text-align:center"><img src="${qr(link)}" width="220" height="220" style="border-radius:16px;border:1px solid var(--line)"><p id="gs" style="font-weight:700;color:#B54708">⏳ Menunggu tamu mendaftar… (berlaku ${r.menit} menit, sekali pakai)</p><input class="in" readonly value="${esc(link)}" id="lk"></div><div class="row"><button class="btn g" id="cp">📋 Salin link</button><button class="btn wr" id="nw">Buat baru</button><button class="btn" id="cl">Tutup</button></div>`);
- let live=true;const iv=setInterval(async()=>{if(!document.body.contains(o)){clearInterval(iv);return}const c=await api('checkGuestToken',{token:r.token},1);if(c.status!=='Aktif'){clearInterval(iv);$('#gs',o).style.color=c.status==='Terpakai'?'#067647':'#B42318';$('#gs',o).textContent=c.status==='Terpakai'?'✅ Tamu sudah mendaftar':'⌛ Link kedaluwarsa';if(c.status==='Terpakai'&&cur==='tamu')go(cur)}},4000);
+ let live=true;const iv=setInterval(async()=>{if(!document.body.contains(o)){clearInterval(iv);return}const c=await api('checkGuestToken',{token:r.token},1);if(!c.ok)return;if(c.status!=='Aktif'){clearInterval(iv);$('#gs',o).style.color=c.status==='Terpakai'?'#067647':'#B42318';$('#gs',o).textContent=c.status==='Terpakai'?'✅ Tamu sudah mendaftar':'⌛ Link kedaluwarsa';if(c.status==='Terpakai'&&cur==='tamu')go(cur)}},4000);
  $('#cp',o).onclick=()=>{navigator.clipboard?.writeText(link);toast('Link disalin','s')};$('#nw',o).onclick=()=>{o.close();guestLink()};$('#cl',o).onclick=o.close}
 
 /* ===== HALAMAN PUBLIK TAMU ===== */
+const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},lsDel=k=>{try{localStorage.removeItem(k)}catch(e){}};
+const toCard=tk=>location.replace(`?kartu=1&token=${tk}`);let ofT=0;
 async function guestForm(tk){
- const[c,o]=await Promise.all([api('checkGuestToken',{token:tk},1),api('getPublicOptions',{},1)]);$('#splash').style.display='none';
- if(!c.valid){$('#root').innerHTML=`<div class="pub"><div class="card"><div class="ph"><h2>Link tidak berlaku</h2></div><div class="pb empty">${ico('lock','#64748b')}Link ini ${c.status==='Terpakai'?'sudah digunakan':'kedaluwarsa atau tidak ditemukan'}. Silakan minta link baru kepada petugas keamanan.</div></div></div>`;return}
+ clearTimeout(ofT);const[c,o]=await Promise.all([api('checkGuestToken',{token:tk},1),api('getPublicOptions',{},1)]);$('#splash').style.display='none';
+ const pub=(h,t)=>$('#root').innerHTML=`<div class="pub"><div class="card"><div class="ph"><h2>${t}</h2></div><div class="pb empty">${h}</div></div></div>`;
+ /* 1) sinyal terputus / server tidak merespons: jangan simpulkan "link tidak berlaku" */
+ if(!c.ok||(c.valid&&!o.ok)){if(lsGet('gc_'+tk))return toCard(tk);
+  pub(`${ico('alert','#f59e0b')}Sinyal terputus. Halaman mencoba menyambung kembali otomatis.<div><button class="btn g sm" id="rt" style="margin-top:12px">Coba lagi sekarang</button></div>`,'Menyambung…');
+  $('#rt').onclick=()=>guestForm(tk);ofT=setTimeout(()=>guestForm(tk),5000);return}
+ /* 2) link sudah terpakai tetapi kunjungan masih aktif (belum check-out): langsung ke kartu ID */
+ if(c.resume)return toCard(tk);
+ if(c.status==='Terpakai')return pub(`${ico('check','#10b981')}Kunjungan Anda sudah selesai (check-out). Terima kasih. Untuk kunjungan baru, minta link baru kepada petugas keamanan.`,'Kunjungan selesai');
+ if(!c.valid)return pub(`${ico('lock','#64748b')}Link ini kedaluwarsa atau tidak ditemukan. Silakan minta link baru kepada petugas keamanan.`,'Link tidak berlaku');
  const sel=(id,a)=>`<select class="in" id="${id}"><option value="">— pilih —</option>${a.map(x=>`<option>${esc(x)}</option>`).join('')}</select>`;
  $('#root').innerHTML=`<div class="pub"><div class="card"><div class="ph">${LG(44)}<h2>Registrasi Tamu</h2><div>${esc(o.company)}</div></div><div class="pb"><datalist id="el">${o.employees.map(e=>`<option value="${esc(e.nama)}">`).join('')}</datalist>
  <label>Kategori Pengunjung *</label>${sel('g0',o.categories)}<label>Nama Lengkap *</label><input class="in" id="g1"><label>Perusahaan / Instansi</label><input class="in" id="g2"><label>Tujuan Kunjungan *</label>${sel('g3',o.tujuan)}<label>Karyawan yang Dituju *</label><input class="in" id="g4" list="el"><label>Jenis Identitas</label>${sel('g5',o.identitas)}<div class="r2"><div><label>No HP</label><input class="in" id="g6" inputmode="tel"></div><div><label>Jumlah Orang</label><input class="in" id="g7" type="number" value="1" min="1" inputmode="numeric"></div></div><label>Barang Bawaan</label><input class="in" id="g8">
  <div class="err" id="ge"></div><button class="btn w" id="gs">Daftar & Dapatkan Kartu ID</button></div></div></div>`;
- $('#gs').onclick=async()=>{const v=i=>$('#g'+i).value.trim();if(!v(0)||!v(1)||!v(3)||!v(4)){$('#ge').textContent='Lengkapi kolom bertanda *';return}
+ /* data isian disimpan di perangkat agar tidak hilang bila halaman ter-refresh saat sinyal buruk */
+ const ids=[0,1,2,3,4,5,6,7,8],dk='gd_'+tk,dr=lsGet(dk);
+ if(dr)ids.forEach(i=>{const e=$('#g'+i);if(e&&dr[i]!=null&&dr[i]!=='')e.value=dr[i]});
+ const sv=()=>lsSet(dk,ids.map(i=>$('#g'+i).value));ids.forEach(i=>{$('#g'+i).addEventListener('input',sv);$('#g'+i).addEventListener('change',sv)});
+ $('#gs').onclick=async()=>{const b=$('#gs'),ge=$('#ge'),v=i=>$('#g'+i).value.trim();if(!v(0)||!v(1)||!v(3)||!v(4)){ge.style.color='';ge.textContent='Lengkapi kolom bertanda *';return}
   const e=o.employees.find(x=>x.nama===v(4)),d={'Kategori Pengunjung':v(0),'Nama Pengunjung':v(1),'Perusahaan/Instansi':v(2),'Tujuan Kunjungan':v(3),'Nama Karyawan':v(4),'Departemen yang Dituju':e?e.dept:'','Jenis Identitas':v(5),'No HP Pengunjung':v(6),'Jumlah Orang':v(7),'Barang Bawaan':v(8)};
-  const r=await api('submitGuestEntry',{token:tk,data:d});if(r.ok)location.search=`?kartu=1&token=${tk}`;else $('#ge').textContent=r.error}}
+  b.disabled=true;b.textContent='Mengirim…';ge.style.color='var(--mute)';let r;
+  /* kirim ulang otomatis bila sinyal putus; server mengenali permintaan yang sama (tidak ganda) */
+  for(let n=0;n<4;n++){ge.textContent=n?`Sinyal lemah, mengirim ulang (${n}/3)…`:'Mengirim data…';r=await api('submitGuestEntry',{token:tk,data:d},1);if(!r.net)break;await sleep(2500*(n+1))}
+  if(r.ok){lsSet('gc_'+tk,{ok:true,found:true,active:true,company:o.company,guest:{...d,'ID Kunjungan':r.idKunjungan,'Waktu Masuk':now(),'Status Kunjungan':'Di Dalam'}});lsDel(dk);return toCard(tk)}
+  b.disabled=false;b.textContent='Daftar & Dapatkan Kartu ID';ge.style.color='';
+  if(r.net)ge.textContent='Sinyal terputus. Isian Anda tersimpan di perangkat — tekan Daftar lagi saat sinyal kembali. Bila sempat terkirim, buka ulang link ini dan Kartu ID akan muncul.';
+  else ge.textContent=r.error||'Gagal mengirim data.'}}
 /* ===== KARTU TAMU + ARAH KE TITIK KUMPUL TERDEKAT ===== */
 const hav=(a,b,c,d)=>{const R=6371000,r=x=>x*Math.PI/180,h=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
 const fm=m=>m<1000?Math.round(m)+' m':(m/1000).toFixed(1)+' km',mnt=m=>Math.max(1,Math.round(m/80)),GM=(o,d)=>`https://www.google.com/maps/dir/?api=1${o?`&origin=${o.lat},${o.lng}`:''}&destination=${d.lat},${d.lng}&travelmode=walking`;
@@ -362,13 +383,18 @@ async function guestCard(tk){
   else if(n.list.length)body=`<div class="et"><small>${G.den?'LOKASI TIDAK DIIZINKAN':'MENCARI LOKASI ANDA…'}</small><span>Izinkan akses lokasi agar titik kumpul terdekat dipilihkan otomatis.</span></div>${n.list.map(x=>`<a class="btn g" target="_blank" rel="noopener" href="${GM(null,x)}">${ico('pin','#ef4444')} ${esc(x.nama)}</a>`).join('')}<button class="btn nv" id="lk2">Izinkan Lokasi</button>`;
   else body=`<div class="et"><span>Segera menuju titik kumpul terdekat dan ikuti arahan petugas keamanan.</span></div>`;
   b.innerHTML=`<div class="eg">${head}${body}</div>`;const l=$('#lk2');if(l)l.onclick=watch}
+ const cardHtml=r=>{const g=r.guest||{};return `<div class="ph">${LG(30)}<div>${esc(r.company)}</div><b>KARTU TAMU DIGITAL</b></div><div class="pb id"><div class="av">${esc((g['Nama Pengunjung']||'?')[0])}</div><h2 style="margin:4px 0">${esc(g['Nama Pengunjung'])}</h2><div style="color:var(--mute)">${esc(g['Perusahaan/Instansi']||g['Kategori Pengunjung'])}</div><p><span class="pill ${r.active?'':'x'}">${r.active?'AKTIF':'SELESAI'}</span></p>
+  ${r.active?`<img src="${qr(g['ID Kunjungan'],170)}" width="170" height="170" alt="QR" onerror="this.style.display='none'"><p><b class="idn">${esc(g['ID Kunjungan'])}</b></p><div class="kv" style="text-align:left"><span>Tujuan</span><b>${esc(g['Tujuan Kunjungan'])}</b><span>Bertemu</span><b>${esc(g['Nama Karyawan'])}</b><span>Masuk</span><b>${esc(g['Waktu Masuk'])}</b></div><p style="color:var(--mute);font-size:12px">Tunjukkan kartu ini (atau sebutkan ID di atas) kepada petugas. Simpan/screenshot kartu ini. Kartu nonaktif otomatis setelah check-out.</p>`:`<p>Kunjungan telah selesai. Terima kasih.</p>`}</div>`};
  const draw=async()=>{const[r,e]=await Promise.all([api('getGuestCard',{token:tk},1),api('getEmergencyStatus',{withPoints:1},1)]);$('#splash').style.display='none';
-  if(!r.ok&&G.x)return;if(!$('#eg'))$('#root').innerHTML='<div class="pub"><div class="card"><div id="eg"></div><div id="cd"></div></div></div>';
+  if(!$('#eg'))$('#root').innerHTML='<div class="pub"><div class="card"><div id="ob"></div><div id="eg"></div><div id="cd"></div></div></div>';
+  /* gangguan sinyal: tampilkan kartu tersimpan, coba lagi otomatis */
+  if(!r.ok){const c=lsGet('gc_'+tk),has=c&&c.found;
+   $('#ob').innerHTML=`<div class="off">${ico('alert','#cf8a22')}${has?'Sinyal terputus — menampilkan kartu tersimpan. Status terbaru dimuat saat sinyal kembali.':'Sinyal terputus. Mencoba menyambung kembali otomatis…'}</div>`;
+   if(!G.x){if(has){G.x='cache';$('#cd').innerHTML=cardHtml(c)}else $('#cd').innerHTML=`<div class="pb empty">${ico('alert','#f59e0b')}Kartu akan dimuat otomatis begitu sinyal kembali.<div><button class="btn g sm" id="rt" style="margin-top:12px">Coba lagi sekarang</button></div></div>`;const t=$('#rt');if(t)t.onclick=draw}
+   return}
+  $('#ob').innerHTML='';if(r.found)lsSet('gc_'+tk,r);
   const was=G.on&&G.e&&G.e.active;G.on=!!(r.found&&r.active);if(e&&e.ok)G.e=e;
-  const ck=JSON.stringify(r);if(ck!==G.x){G.x=ck;
-   if(!r.found)$('#cd').innerHTML=`<div class="pb empty">${ico('search','#94a3b8')}Kartu tidak ditemukan.</div>`;
-   else{const g=r.guest;$('#cd').innerHTML=`<div class="ph">${LG(30)}<div>${esc(r.company)}</div><b>KARTU TAMU DIGITAL</b></div><div class="pb id"><div class="av">${esc((g['Nama Pengunjung']||'?')[0])}</div><h2 style="margin:4px 0">${esc(g['Nama Pengunjung'])}</h2><div style="color:var(--mute)">${esc(g['Perusahaan/Instansi']||g['Kategori Pengunjung'])}</div><p><span class="pill ${r.active?'':'x'}">${r.active?'AKTIF':'SELESAI'}</span></p>
-  ${r.active?`<img src="${qr(g['ID Kunjungan'],170)}" width="170" height="170" alt="QR"><p><b>${esc(g['ID Kunjungan'])}</b></p><div class="kv" style="text-align:left"><span>Tujuan</span><b>${esc(g['Tujuan Kunjungan'])}</b><span>Bertemu</span><b>${esc(g['Nama Karyawan'])}</b><span>Masuk</span><b>${esc(g['Waktu Masuk'])}</b></div><p style="color:var(--mute);font-size:12px">Tunjukkan kartu ini kepada petugas. Kartu nonaktif otomatis setelah check-out.</p>`:`<p>Kunjungan telah selesai. Terima kasih.</p>`}</div>`}}
+  const ck=JSON.stringify(r);if(ck!==G.x){G.x=ck;$('#cd').innerHTML=r.found?cardHtml(r):`<div class="pb empty">${ico('search','#94a3b8')}Kartu tidak ditemukan.</div>`}
   const ne=G.on&&G.e&&G.e.active;if(ne&&!was){watch();if(navigator.vibrate)navigator.vibrate([300,150,300,150,600]);scrollTo(0,0)}if(!ne)unwatch();paintE()};
  await draw();setInterval(draw,10000)}
 
