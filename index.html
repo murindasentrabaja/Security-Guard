@@ -195,14 +195,14 @@ function buildKd(){const d=S.cache['Kamus Data'];if(d)d.rows.forEach(r=>S.kd[r['
 
 /* ===== BOOT & LOGIN ===== */
 const P=new URLSearchParams(location.search);
-(async function boot(){
+async function boot(){
  const tk=P.get('token'),hide=()=>{$('#splash').style.opacity=0;setTimeout(()=>$('#splash').style.display='none',400)};
  if(tk&&(P.get('daftar')==='1'||P.get('kartu')==='1'))emgGuestStart();
  if(P.get('daftar')==='1'&&tk)await guestForm(tk);else if(P.get('kartu')==='1'&&tk)await guestCard(tk);
  else{let s=null;try{s=JSON.parse(sessionStorage.getItem('sec'))}catch(e){}
   if(s&&s.session){S.session=s.session;S.user=s.user;S.company=s.company||S.company;enter()}
   else{const r=await api('getLoginUsers',{},1);if(!r.ok){$('#spm').textContent=r.error;return}S.company=r.company;S.users=r.users;loginUI()}}
- hide()})();
+ hide()}
 function loginUI(){
  $('#root').innerHTML=`<div id="login"><div class="lcard">${LG(58)}<h2>${esc(S.company)}</h2><p>Sistem Keamanan Terpadu — masuk untuk memulai dinas.</p><div class="ck"><span class="ck-d"></span><b class="ck-t"></b></div>
  <label>Petugas</label><div class="who"><div class="av" id="lav"></div><select class="in" id="lu">${S.users.map(u=>`<option value="${esc(u.id)}">${esc(u.nama)}</option>`).join('')}</select></div>
@@ -428,4 +428,5 @@ async function toPdf(r){busy(1);try{if(!window.jspdf){await lib('https://cdnjs.c
  let y=d.lastAutoTable.finalY+8;if(y>H-45){d.addPage();head();y=38}d.setTextColor(31,45,71);d.setFontSize(9);d.text(m[4],14,y);d.text('Dibuat oleh,',W-95,y+8);d.text('Mengetahui,',W-48,y+8);d.text(S.user.nama,W-95,y+28);d.text('Kepala Security',W-48,y+28);d.save(fname(r,'pdf'))}catch(e){toast('Gagal membuat PDF. Gunakan Print > Simpan sebagai PDF.','e')}busy(-1)}
 function toPrint(r){const m=meta(r),w=window.open('','_blank');if(!w)return toast('Izinkan pop-up untuk mencetak','e');
  w.document.write(`<html><head><title>${esc(r.title)}</title><style>body{font:11px Arial;margin:18px;color:#1f2d47}.k{display:flex;align-items:center;gap:16px;border-bottom:3px solid #3a5c9e;padding-bottom:8px;margin-bottom:10px}.k img{height:50px}h1{margin:0;font-size:17px}h2{margin:2px 0 4px;font-size:13px}table{width:100%;border-collapse:collapse}th{background:#3a5c9e;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}th,td{border:1px solid #aab4c8;padding:4px 6px;text-align:left}thead{display:table-header-group}tr:nth-child(even) td{background:#f4f6fb;-webkit-print-color-adjust:exact}.s{display:flex;justify-content:space-around;margin-top:30px;text-align:center}@page{size:A4 landscape;margin:10mm}</style></head><body><div class="k"><img src="${LOGO}"><div><h1>${esc(m[0])}</h1><h2>${esc(m[1])}</h2>${esc(m[2])} &nbsp;|&nbsp; ${esc(m[3])}</div></div><table><thead><tr>${r.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${r.rows.map(x=>`<tr>${r.cols.map(c=>`<td>${esc(cellTxt(r,c,x[c]))}</td>`).join('')}</tr>`).join('')}</tbody></table><p><b>${esc(m[4])}</b></p><div class="s"><div>Dibuat oleh,<br><br><br><br>${esc(S.user.nama)}</div><div>Mengetahui,<br><br><br><br>Kepala Security</div></div></body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),500)}
+boot();
 </script></body></html>
